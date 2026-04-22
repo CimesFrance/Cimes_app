@@ -1,0 +1,6 @@
+[submodule "modules/app_calibrage_cam"]
+	path = modules/app_calibrage_cam
+	url = git@github.com:CimesFrance/App-Calibrage.git
+[submodule "modules/app_change_corr_params"]
+	path = modules/app_change_corr_params
+	url = git@github.com:CimesFrance/Reglage-param-tre.git
