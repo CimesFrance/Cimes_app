@@ -5,7 +5,7 @@
 ![OpenCV](https://img.shields.io/badge/OpenCV-4.8-green)
 ![Framework](https://img.shields.io/badge/Framework-Tkinter-orange)
 
-## 📋 Présentation
+## Présentation
 
 **CIMES** (Captation et Imagerie pour la Mesure et l'Évaluation des Solides) est une application professionnelle de **granulométrie par vision artificielle**. Elle permet d'analyser en temps réel ou de manière différée la distribution de taille des particules à partir d'un flux vidéo (caméra IP/RTSP) ou d'images enregistrées.
 
@@ -13,7 +13,7 @@ Le logiciel utilise des algorithmes d'apprentissage profond (Deep Learning) via 
 
 ---
 
-## ✨ Fonctionnalités Clés
+## Fonctionnalités Clés
 
 *   **Flux Vidéo Temps Réel :** Connexion stable aux flux RTSP avec gestion des tampons pour une latence minimale.
 *   **Segmentation Avancée :** Intégration de modèles Cellpose (compatible GPU) pour une détection précise des contours.
@@ -26,7 +26,7 @@ Le logiciel utilise des algorithmes d'apprentissage profond (Deep Learning) via 
 
 ---
 
-## 🏗️ Architecture du Projet
+## Architecture du Projet
 
 Le projet suit une structure modulaire pour faciliter la maintenance et l'évolution :
 
@@ -47,7 +47,7 @@ Cimes_app/
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 - Python 3.10 ou supérieur
@@ -77,7 +77,7 @@ Cimes_app/
 
 ---
 
-## 🛠️ Utilisation
+## Utilisation
 
 Pour lancer l'application :
 
@@ -92,7 +92,7 @@ python main.py
 
 ---
 
-## 🧪 Technologies Utilisées
+## Technologies Utilisées
 
 *   **Interface :** Tkinter (Python Standard Library)
 *   **Traitement d'Image :** OpenCV, PIL, Scikit-Image
@@ -103,7 +103,7 @@ python main.py
 
 ---
 
-## 📝 Auteurs & Licence
+## Auteurs & Licence
 
 Développé par l'équipe **Cimes France**.
 Tous droits réservés.
