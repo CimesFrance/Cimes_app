@@ -2,8 +2,13 @@
 import warnings
 warnings.filterwarnings('ignore')
 
-from gui.main_app import CimesApp
+import sys
+import os
 
+# Ajouter la racine au path pour que les imports src.* fonctionnent
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from src.ui.main_app import CimesApp
 
 if __name__ == "__main__":
     try:

@@ -1,0 +1,111 @@
+# -*- coding: utf-8 -*-
+"""
+Vue Paramètres — coordinateur.
+Construit la nav latérale et délègue chaque section à son sous-module.
+"""
+import tkinter as tk
+from tkinter import ttk
+
+from src.ui.widgets.ui_utils import (
+    COLOR_FRAME_BG, COLOR_CARD_BG
+)
+from src.ui.views.param_subviews.sensor_settings      import create_sensor_settings
+from src.ui.views.param_subviews.calibration_settings import create_calibration_settings
+from src.ui.views.param_subviews.analysis_settings    import create_analysis_settings
+from src.ui.views.param_subviews.transmission_settings import create_transmission_settings
+
+
+class ParamView:
+    def __init__(self, parent, app):
+        self.parent = parent
+        self.app    = app
+        self.app.use_undistortion_var.set(True)
+        self.frame  = tk.Frame(parent, bg=COLOR_FRAME_BG)
+        self.param_nav_buttons = {}
+        self._build_ui()
+
+    def _build_ui(self):
+        param_area = tk.Frame(self.frame, bg=COLOR_FRAME_BG)
+        param_area.pack(fill="both", expand=True, padx=20, pady=10)
+
+        param_area.columnconfigure(1, weight=1)
+        param_area.rowconfigure(0, weight=1)
+
+        # Navigation latérale
+        nav_frame = ttk.Frame(param_area, style="Card.TFrame", width=200)
+        nav_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
+        nav_frame.pack_propagate(False)
+
+        tk.Label(nav_frame, text="Catégories :", bg=COLOR_CARD_BG,
+                 font=("Segoe UI", 10, "bold"), padx=10, pady=5).pack(fill="x", anchor="n")
+
+        nav_items = [
+            ("sensor",       "📷 Capteur"),
+            ("calibration",  "⚙️ Calibration Caméra"),
+            ("analysis",     "🔬 Analyse"),
+            ("transmission", "📤 Transmission"),
+        ]
+        for key, label in nav_items:
+            btn = ttk.Button(
+                nav_frame, text=label, style="ParamNav.TButton",
+                command=lambda k=key: self._switch_param_view(k)
+            )
+            btn.pack(fill="x", padx=5, pady=(5 if key == "sensor" else 2, 2))
+            self.param_nav_buttons[key] = btn
+
+        # Conteneur du contenu
+        self.param_content_frame = tk.Frame(param_area, bg=COLOR_FRAME_BG)
+        self.param_content_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=0)
+        self.param_content_frame.grid_columnconfigure(0, weight=1)
+        self.param_content_frame.grid_rowconfigure(0, weight=1)
+
+        # Créer toutes les vues (délégation aux sous-modules)
+        self.sensor_settings_frame       = create_sensor_settings(self)
+        self.calibration_settings_frame  = create_calibration_settings(self)
+        self.analysis_settings_frame     = create_analysis_settings(self)
+        self.transmission_settings_frame = create_transmission_settings(self)
+
+        # Vue par défaut
+        self._switch_param_view("sensor")
+
+    def _switch_param_view(self, key):
+        """Active la vue sélectionnée et grise les autres."""
+        for k, btn in self.param_nav_buttons.items():
+            btn.configure(
+                style="ParamNavActive.TButton" if k == key else "ParamNav.TButton"
+            )
+
+        frames = {
+            "sensor":       self.sensor_settings_frame,
+            "calibration":  self.calibration_settings_frame,
+            "analysis":     self.analysis_settings_frame,
+            "transmission": self.transmission_settings_frame,
+        }
+        for name, frame in frames.items():
+            if frame:
+                frame.grid_forget()
+        frame_to_show = frames.get(key)
+        if frame_to_show:
+            frame_to_show.grid(row=0, column=0, sticky="nsew")
+
+    def _toggle_capture_controls(self):
+        """Active/désactive les contrôles selon le mode de capture."""
+        mode = self.app.capture_mode_var.get()
+        if mode == "automatique":
+            self.auto_params_frame.pack(fill="x", pady=(0, 20))
+            self.manual_params_frame.pack_forget()
+            for widget in self.capture_interval_frame.winfo_children():
+                widget.configure(state="normal")
+            for widget in self.time_frame.winfo_children():
+                widget.configure(state="normal")
+            for widget in self.days_frame.winfo_children():
+                widget.configure(state="normal")
+        else:
+            self.auto_params_frame.pack_forget()
+            self.manual_params_frame.pack(fill="x", pady=(0, 20))
+            for widget in self.capture_interval_frame.winfo_children():
+                widget.configure(state="disabled")
+            for widget in self.time_frame.winfo_children():
+                widget.configure(state="disabled")
+            for widget in self.days_frame.winfo_children():
+                widget.configure(state="disabled")
