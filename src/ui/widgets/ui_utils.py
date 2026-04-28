@@ -1,12 +1,13 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import tkinter as tk
 from tkinter import ttk
 
-COLOR_BG_DARK = "#191D35"
+COLOR_BG_DARK = "#2C3E50"
+COLOR_NAV_HOVER = "#34495E"
 COLOR_ACCENT = "#F76F00"
 COLOR_TEXT_LIGHT = "white"
-COLOR_FRAME_BG ="#191D35"
+COLOR_FRAME_BG ="#2C3E50"
 COLOR_CARD_BG = "white"
 COLOR_STATUS_RUNNING = "#10b981"
 COLOR_STATUS_STOPPED = "#dc2626"
@@ -15,13 +16,26 @@ COLOR_STAT_GOOD = "#10b981"
 COLOR_STAT_WARN = "#f59e0b"
 COLOR_STAT_BAD = "#ef4444"
 
+from PIL import Image, ImageTk
+
 # Racine du projet
-proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 # On cherche le logo dans assets
 LOGO_PATH = os.path.join(proj_root, "assets", "logo.png")
 if not os.path.exists(LOGO_PATH):
     # Fallback vers un chemin courant ou celui par défaut si le fichier n'existe pas
     LOGO_PATH = r"C:\Users\Arezki.boukhalfa\Desktop\logo.png"
+
+def load_icon(name, size=(24, 24)):
+    """Charge et redimensionne une icône depuis le dossier assets."""
+    icon_path = os.path.join(proj_root, "assets", name)
+    try:
+        img = Image.open(icon_path)
+        img = img.resize(size, Image.Resampling.LANCZOS)
+        return ImageTk.PhotoImage(img)
+    except Exception as e:
+        print(f"Erreur lors du chargement de l'icône {name}: {e}")
+        return None
 
 def creer_dossier(path):
     os.makedirs(path, exist_ok=True)
@@ -36,10 +50,20 @@ def configure_styles(root):
         pass
 
     # Style pour les boutons de navigation
-    style.configure("Nav.TButton", font=("Segoe UI", 11, "bold"), padding=(20, 8),
-                    background=COLOR_BG_DARK, foreground=COLOR_TEXT_LIGHT, relief="flat")
-    style.configure("NavActive.TButton", font=("Segoe UI", 11, "bold"), padding=(20, 8),
-                    background=COLOR_ACCENT, foreground=COLOR_TEXT_LIGHT, relief="flat")
+    style.configure("Nav.TButton", font=("Segoe UI", 10, "bold"), padding=(15, 5),
+                    background=COLOR_BG_DARK, foreground="white", relief="flat")
+    style.map("Nav.TButton",
+              background=[("active", COLOR_NAV_HOVER), ("pressed", COLOR_NAV_HOVER)],
+              foreground=[("active", "white"), ("pressed", "white")],
+              relief=[("pressed", "flat")])
+
+    # Utilisation d'un style spécifique pour l'état actif
+    style.configure("NavActive.TButton", font=("Segoe UI", 10, "bold"), padding=(15, 5),
+                    background=COLOR_BG_DARK, foreground="white", relief="flat")
+    style.map("NavActive.TButton",
+              background=[("active", COLOR_NAV_HOVER), ("pressed", COLOR_NAV_HOVER)],
+              foreground=[("active", "white"), ("pressed", "white")],
+              relief=[("pressed", "flat")])
     style.configure("Secondary.TButton", font=("Segoe UI", 10), padding=(10, 5),
                     background="#e5e5e5", relief="flat")
 

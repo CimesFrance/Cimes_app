@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from src.ui.widgets.ui_utils import (
-    COLOR_FRAME_BG, COLOR_CARD_BG, COLOR_ACCENT
+    COLOR_FRAME_BG, COLOR_CARD_BG, COLOR_ACCENT, load_icon
 )
 from src.ui.views.curve_subviews.stats_panel       import StatsPanel
 from src.ui.views.curve_subviews.history_panel     import HistoryPanel
@@ -26,6 +26,10 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
 
         self.stat_value_labels = {}
         self.particles_tree    = None
+        
+        # Icônes
+        self.icon_stats = load_icon("bar-chart.png", size=(20, 20))
+        self.icon_table = load_icon("dashboard.png", size=(20, 20))
 
         self._build_ui()
 
@@ -46,7 +50,8 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         stats_frame = ttk.Frame(stats_column, style="Card.TFrame")
         stats_frame.pack(fill="both", expand=True)
 
-        tk.Label(stats_frame, text="📊 Statistiques Granulométriques", bg="#e5e7eb",
+        tk.Label(stats_frame, text=" Statistiques Granulométriques", image=self.icon_stats,
+                 compound="left", bg="#e5e7eb",
                  anchor="w", font=("Segoe UI", 12, "bold"), padx=10, pady=5).pack(fill="x")
 
         self.stats_inner_frame = tk.Frame(stats_frame, bg=COLOR_CARD_BG)
@@ -77,7 +82,8 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         table_frame = ttk.Frame(middle_column, style="Card.TFrame")
         table_frame.pack(fill="both", expand=True)
 
-        tk.Label(table_frame, text="📋 Tableau des Cailloux Détectés", bg="#e5e7eb",
+        tk.Label(table_frame, text=" Tableau des cailloux détectés", image=self.icon_table,
+                 compound="left", bg="#e5e7eb",
                  anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         particles_container = tk.Frame(table_frame, bg=COLOR_CARD_BG)

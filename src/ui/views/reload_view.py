@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from src.ui.widgets.ui_utils import (
-    COLOR_FRAME_BG, COLOR_CARD_BG
+    COLOR_FRAME_BG, COLOR_CARD_BG, load_icon
 )
 from src.ui.views.reload_subviews.image_analyzer import ImageAnalyzer
 from src.ui.views.reload_subviews.csv_manager    import CsvManager
@@ -26,6 +26,11 @@ class ReloadView(ImageAnalyzer, CsvManager):
         self.csv_curves              = []
         self.csv_curve_names         = []
         self.segmented_tk_img        = None
+        
+        # Icônes
+        self.icon_analyze = load_icon("analysis.png", size=(20, 20))
+        self.icon_load    = load_icon("download.png", size=(20, 20))
+        self.icon_delete  = load_icon("bin.png", size=(20, 20))
 
         self._build_ui()
 
@@ -50,7 +55,7 @@ class ReloadView(ImageAnalyzer, CsvManager):
         tk.Label(content, text="Analyse d'image :", bg=COLOR_CARD_BG,
                  font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 5))
 
-        ttk.Button(content, text="📁 Parcourir image...", style="Secondary.TButton",
+        ttk.Button(content, text="📁 Parcourir image", style="Secondary.TButton",
                    command=self._browse_and_analyze_image).pack(fill="x", pady=(0, 10))
 
         self.selected_path_label = tk.Label(
@@ -61,7 +66,8 @@ class ReloadView(ImageAnalyzer, CsvManager):
         self.selected_path_label.pack(fill="x", pady=(0, 20))
 
         self.analyze_btn = ttk.Button(
-            content, text="🔬 Analyser l'image",
+            content, text=" Analyser l'image",
+            image=self.icon_analyze, compound="left",
             style="Secondary.TButton",
             state="disabled",
             command=self._analyze_loaded_image
@@ -75,10 +81,12 @@ class ReloadView(ImageAnalyzer, CsvManager):
         tk.Label(content, text="Courbes de tamisage CSV :", bg=COLOR_CARD_BG,
                  font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(0, 5))
 
-        ttk.Button(content, text="📊 Charger courbe CSV...", style="Secondary.TButton",
+        ttk.Button(content, text=" Charger courbe CSV", image=self.icon_load,
+                   compound="left", style="Secondary.TButton",
                    command=self._load_csv_curve).pack(fill="x", pady=(0, 10))
 
-        ttk.Button(content, text="🗑️ Supprimer toutes les courbes", style="Secondary.TButton",
+        ttk.Button(content, text=" Supprimer les courbes", image=self.icon_delete,
+                   compound="left", style="Secondary.TButton",
                    command=self._clear_all_csv_curves).pack(fill="x", pady=(0, 10))
 
         self.csv_curves_frame = tk.Frame(content, bg=COLOR_CARD_BG)
@@ -117,7 +125,7 @@ class ReloadView(ImageAnalyzer, CsvManager):
         self.reload_left_panel = tk.Frame(sidebar, bg=COLOR_CARD_BG, width=300)
         self.reload_left_panel.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # ── Zone d'affichage droite ─────────────────────────────────────
+        # ── Zone d'affichage droite ────────────────────────────────
         results_area = tk.Frame(self.frame, bg=COLOR_FRAME_BG)
         results_area.grid(row=0, column=1, sticky="nsew", padx=(5, 10), pady=10)
         results_area.columnconfigure(0, weight=1)

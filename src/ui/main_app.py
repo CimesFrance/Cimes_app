@@ -77,25 +77,33 @@ class CimesApp(CameraController, tk.Tk):
         self._set_active_nav("measure")
 
     def _create_header(self):
-        header = tk.Frame(self, bg=COLOR_BG_DARK, height=150)
+        header_height = 90
+        header = tk.Frame(self, bg=COLOR_BG_DARK, height=header_height)
         header.pack(side="top", fill="x")
         header.pack_propagate(False)
 
+        # Logo section
+        logo_container = tk.Frame(header, bg=COLOR_BG_DARK)
+        logo_container.pack(side="left", padx=30, fill="y")
+
         try:
             img = Image.open(LOGO_PATH)
-            logo_height = 150
+            display_height = 70  # Increased from 60
             ratio = img.width / img.height if img.height > 0 else 1
-            logo_img = img.resize((int(logo_height * ratio), logo_height), Image.Resampling.LANCZOS)
+            logo_img = img.resize((int(display_height * ratio), display_height), Image.Resampling.LANCZOS)
             self.logo_header = ImageTk.PhotoImage(logo_img)
-            tk.Label(header, image=self.logo_header, bg=COLOR_BG_DARK).pack(
-                side="left", padx=(20, 5), pady=5
-            )
+            tk.Label(logo_container, image=self.logo_header, bg=COLOR_BG_DARK).pack(expand=True)
         except Exception:
-            tk.Label(header, text="CIMES", bg=COLOR_BG_DARK, fg=COLOR_TEXT_LIGHT,
-                     font=("Segoe UI", 30, "bold")).pack(side="left", padx=(20, 5), pady=5)
+            tk.Label(logo_container, text="CIMES", bg=COLOR_BG_DARK, fg=COLOR_TEXT_LIGHT,
+                     font=("Segoe UI", 18, "bold")).pack(expand=True)
 
-        nav_frame = tk.Frame(header, bg=COLOR_BG_DARK)
-        nav_frame.pack(side="right", padx=20)
+        # Navigation section
+        self.nav_container = tk.Frame(header, bg=COLOR_BG_DARK)
+        self.nav_container.pack(side="right", padx=30, fill="y")
+        
+        # This will contain the buttons and the indicator
+        nav_buttons_frame = tk.Frame(self.nav_container, bg=COLOR_BG_DARK)
+        nav_buttons_frame.pack(side="top", fill="x")
 
         nav_items = [
             ("measure",  "Mesure"),
@@ -103,25 +111,53 @@ class CimesApp(CameraController, tk.Tk):
             ("reload",   "Recharger"),
             ("param",    "Paramètres"),
         ]
+        
+        self.nav_buttons = {}
         for key, label in nav_items:
-            btn = ttk.Button(nav_frame, text=label, style="Nav.TButton",
+            # We use a container for each button to manage the indicator
+            btn_box = tk.Frame(nav_buttons_frame, bg=COLOR_BG_DARK)
+            btn_box.pack(side="left", padx=5)
+            
+            btn = ttk.Button(btn_box, text=label, style="Nav.TButton",
                              command=lambda k=key: self._on_nav_clicked(k))
-            btn.pack(side="left", padx=5)
+            btn.pack(side="top", pady=(22, 0))
             self.nav_buttons[key] = btn
+            
+            # Sub-indicator line (hidden by default)
+            line = tk.Frame(btn_box, bg=COLOR_ACCENT, height=3)
+            line.pack(side="top", fill="x", pady=(2, 0))
+            line.pack_forget() # Hidden initially
+            btn.indicator = line
+            
+            # Hover effects
+            btn.bind("<Enter>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, True))
+            btn.bind("<Leave>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, False))
 
         self.change_corr_btn = ttk.Button(
-            nav_frame, text="Modifier correction",
+            nav_buttons_frame, text="Modifier correction",
             style="Nav.TButton",
             command=self._change_correction
         )
-        self.change_corr_btn.pack(side="left", padx=5)
+        self.change_corr_btn.pack(side="left", padx=(15, 0), pady=(22, 0))
+
+    def _on_nav_hover(self, btn, key, is_entering):
+        if hasattr(self, "current_view_key") and self.current_view_key == key:
+            return
+        # Hover effect is handled by style.map mostly, but we can add more here if needed
+        pass
 
     # ------------------------------------------------------------------
     # Navigation
     # ------------------------------------------------------------------
     def _set_active_nav(self, key):
+        self.current_view_key = key
         for k, btn in self.nav_buttons.items():
-            btn.configure(style="NavActive.TButton" if k == key else "Nav.TButton")
+            if k == key:
+                btn.configure(style="NavActive.TButton") # White text
+                btn.indicator.pack(side="top", fill="x", pady=(2, 0))
+            else:
+                btn.configure(style="Nav.TButton") # Dimmed text
+                btn.indicator.pack_forget()
 
     def _on_nav_clicked(self, key):
         if key == "measure":
