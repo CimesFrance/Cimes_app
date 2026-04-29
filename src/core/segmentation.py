@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import traceback
 from cellpose import utils
+import matplotlib.pyplot as plt
 
 # Vérifier disponibilité de skimage
 try:
@@ -102,7 +103,8 @@ def segment_and_analyze(image, scale_mm_per_pixel=0.1, min_area_px=10, min_axis_
         unique_masks = np.unique(masks)
         num_particles = len(unique_masks) - 1
         print(f"[OK] Particules détectées par Cellpose : {num_particles}")
-
+        img_seg = mask_overlay(rgb_img, masks, colors=None)
+        # cv2.imwrite(r"C:\Users\loic.ngassa\Downloads\img_seg.png", img_seg)
         overlay = rgb_img.copy()
 
         if num_particles > 0:
@@ -117,7 +119,6 @@ def segment_and_analyze(image, scale_mm_per_pixel=0.1, min_area_px=10, min_axis_
         particles_data = []
         L_min_axis = []
         L_max_axis = []
-
         if SKIMAGE_AVAILABLE and num_particles > 0:
             try:
                 label_img = label(masks)

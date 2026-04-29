@@ -24,12 +24,12 @@ class HistoryPanel:
         self.particles_tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
 
         self.particles_tree.heading("id",        text="ID")
-        self.particles_tree.heading("minor_mm",  text="Axe Mineur (mm)")
-        self.particles_tree.heading("major_mm",  text="Axe Majeur (mm)")
+        self.particles_tree.heading("minor_mm",  text="Axe mineur")
+        self.particles_tree.heading("major_mm",  text="Axe majeur")
 
         self.particles_tree.column("id",       width=50,  anchor="center")
-        self.particles_tree.column("minor_mm", width=150, anchor="center")
-        self.particles_tree.column("major_mm", width=150, anchor="center")
+        self.particles_tree.column("minor_mm", width=100, anchor="center")
+        self.particles_tree.column("major_mm", width=100, anchor="center")
 
         scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.particles_tree.yview)
         self.particles_tree.configure(yscrollcommand=scrollbar.set)

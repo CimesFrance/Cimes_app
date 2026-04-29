@@ -60,7 +60,7 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         self.stats_canvas_container = tk.Frame(self.stats_inner_frame, bg=COLOR_CARD_BG)
         self.stats_canvas_container.pack(fill="both", expand=True)
 
-        self.stats_canvas    = tk.Canvas(self.stats_canvas_container, bg=COLOR_CARD_BG,
+        self.stats_canvas = tk.Canvas(self.stats_canvas_container, bg=COLOR_CARD_BG,
                                          highlightthickness=0)
         self.stats_scrollbar = ttk.Scrollbar(self.stats_canvas_container, orient="vertical",
                                              command=self.stats_canvas.yview)
@@ -105,12 +105,12 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         comparison_frame.pack(fill="x", pady=(0, 10))
 
         self.comparison_btn = ttk.Button(comparison_frame,
-                                         text="🔄 Comparaison Multi-Captures",
+                                         text="🔄 Comparaison captures",
                                          style="Secondary.TButton",
                                          command=self._open_comparison_dialog)
-        self.comparison_btn.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        self.comparison_btn.pack(side="left", fill="x", expand=True, padx=(0, 2.5))
 
-        self.report_btn = ttk.Button(comparison_frame, text="📄 Rapport PDF",
+        self.report_btn = ttk.Button(comparison_frame, text="📄 Rapport pdf",
                                      style="Secondary.TButton",
                                      command=self._generate_professional_report)
         self.report_btn.pack(side="left", fill="x", expand=True)
