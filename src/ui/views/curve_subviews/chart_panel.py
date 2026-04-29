@@ -122,9 +122,9 @@ class ChartPanel:
 
         if capture.get("minor_axes_mm") and len(capture["minor_axes_mm"]) > 0:
             try:
-                minor_axes_mm = np.array([x for x in capture["minor_axes_mm"] if x > 0.1])
+                minor_axes_mm = np.array([x for x in capture["minor_axes_mm"] if x > 0.0])
                 if len(minor_axes_mm) == 0:
-                    raise ValueError("Pas de données après filtrage")
+                    raise ValueError("Pas de données après filtrage.")
 
                 bins = [0, 10, 20, 30, 40, 50, 60, 70, 80, 100]
                 bin_labels = ["<10", "10-20", "20-30", "30-40", "40-50",
