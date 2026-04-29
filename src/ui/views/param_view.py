@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from src.ui.widgets.ui_utils import (
-    COLOR_FRAME_BG, COLOR_CARD_BG
+    COLOR_FRAME_BG, COLOR_CARD_BG, load_icon
 )
 from src.ui.views.param_subviews.sensor_settings      import create_sensor_settings
 from src.ui.views.param_subviews.calibration_settings import create_calibration_settings
@@ -32,30 +32,35 @@ class ParamView:
         param_area.rowconfigure(0, weight=1)
 
         # Navigation latérale
-        nav_frame = ttk.Frame(param_area, style="Card.TFrame", width=200)
-        nav_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10), pady=0)
+        nav_frame = ttk.Frame(param_area, style="Card.TFrame", width=240)
+        nav_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 20), pady=0)
         nav_frame.pack_propagate(False)
 
-        tk.Label(nav_frame, text="Catégories :", bg=COLOR_CARD_BG,
-                 font=("Segoe UI", 10, "bold"), padx=10, pady=5).pack(fill="x", anchor="n")
+        tk.Label(nav_frame, text="CATÉGORIES", bg=COLOR_CARD_BG, fg="#9ca3af",
+                 font=("Segoe UI", 9, "bold"), padx=15, pady=5).pack(fill="x", anchor="n", pady=(15, 5))
 
         nav_items = [
-            ("sensor",       "📷 Capteur"),
-            ("calibration",  "⚙️ Calibration Caméra"),
-            ("analysis",     "🔬 Analyse"),
-            ("transmission", "📤 Transmission"),
+            ("sensor",       "Capteur", "temperature-control.png"),
+            ("calibration",  "Calibration", "target.png"),
+            ("analysis",     "Analyse", "analysis.png"),
+            ("transmission", "Transmission", "send.png"),
         ]
-        for key, label in nav_items:
+        
+        self.nav_icons = {}
+        for key, label, icon_name in nav_items:
+            icon = load_icon(icon_name, size=(20, 20))
+            self.nav_icons[key] = icon
             btn = ttk.Button(
-                nav_frame, text=label, style="ParamNav.TButton",
+                nav_frame, text="  " + label, image=icon, compound="left",
+                style="ParamNav.TButton",
                 command=lambda k=key: self._switch_param_view(k)
             )
-            btn.pack(fill="x", padx=5, pady=(5 if key == "sensor" else 2, 2))
+            btn.pack(fill="x", padx=10, pady=2)
             self.param_nav_buttons[key] = btn
 
         # Conteneur du contenu
         self.param_content_frame = tk.Frame(param_area, bg=COLOR_FRAME_BG)
-        self.param_content_frame.grid(row=0, column=1, sticky="nsew", padx=(10, 0), pady=0)
+        self.param_content_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 0), pady=0)
         self.param_content_frame.grid_columnconfigure(0, weight=1)
         self.param_content_frame.grid_rowconfigure(0, weight=1)
 

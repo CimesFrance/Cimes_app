@@ -13,12 +13,12 @@ def create_analysis_settings(view):
     frame = ttk.Frame(view.param_content_frame, style="Card.TFrame")
     create_setting_header(frame, "Paramètres d'Analyse Granulométrique")
 
-    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=20, pady=10)
+    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
 
     # Correction DNA
-    tk.Label(inner, text="Correction DNA de la courbe granulométrique :",
-             bg=COLOR_CARD_BG, anchor="w",
+    tk.Label(inner, text="Correction DNA de la courbe granulométrique",
+             bg=COLOR_CARD_BG, fg="#111827", anchor="w",
              font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     corr_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
@@ -55,11 +55,13 @@ def create_analysis_settings(view):
              text="La correction DNA applique une transformation linéaire\n"
                   "aux tailles de tamis pour améliorer la précision des mesures.",
              bg=COLOR_CARD_BG, fg="#6b7280",
-             font=("Segoe UI", 9, "italic"), justify="left").pack(anchor="w", pady=(5, 0))
+             font=("Segoe UI", 9, "italic"), justify="left").pack(anchor="w", pady=(5, 10))
+
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(5, 15))
 
     # Segmentation Cellpose
-    tk.Label(inner, text="Segmentation Cellpose :", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(10, 0))
+    tk.Label(inner, text="Segmentation Cellpose", bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     try:
         from cellpose import models  # noqa: F401
@@ -84,10 +86,10 @@ def create_analysis_settings(view):
 
     # Paramètres de segmentation
     tk.Label(inner, text="Paramètres de segmentation :", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(10, 0))
+             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(15, 0))
 
     seg_param_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
-    seg_param_frame.pack(fill="x", pady=(5, 20))
+    seg_param_frame.pack(fill="x", pady=(5, 10))
 
     tk.Label(seg_param_frame, text="Diamètre estimé (px):", bg=COLOR_CARD_BG,
              font=("Segoe UI", 10), width=20, anchor="w").pack(side="left")
@@ -98,9 +100,13 @@ def create_analysis_settings(view):
 
     button_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     button_frame.pack(fill="x", pady=(10, 0))
-    ttk.Button(button_frame, text="Appliquer les paramètres",
-               style="Secondary.TButton",
-               command=lambda: _apply_analysis_settings(view)).pack()
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(10, 20))
+    
+    button_frame2 = tk.Frame(inner, bg=COLOR_CARD_BG)
+    button_frame2.pack(fill="x")
+    ttk.Button(button_frame2, text="Appliquer les paramètres",
+               style="ParamAction.TButton",
+               command=lambda: _apply_analysis_settings(view)).pack(side="left")
 
     return frame
 

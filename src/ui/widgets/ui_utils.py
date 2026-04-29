@@ -86,13 +86,34 @@ def configure_styles(root):
     style.configure("Card.TFrame", background=COLOR_CARD_BG, borderwidth=0)
     
     # Style pour la navigation des paramètres
-    style.configure("ParamNav.TButton", font=("Segoe UI", 10, "normal"),
-                    padding=(10, 8), background=COLOR_BG_DARK,
-                    foreground=COLOR_TEXT_LIGHT, relief="flat")
-    style.configure("ParamNavActive.TButton", font=("Segoe UI", 10, "bold"),
-                    padding=(10, 8), background=COLOR_ACCENT,
-                    foreground=COLOR_TEXT_LIGHT, relief="flat")
+    style.configure("ParamNav.TButton", font=("Segoe UI", 10, "bold"),
+                    padding=(15, 10), background=COLOR_CARD_BG,
+                    foreground="#4b5563", relief="flat", anchor="w")
+    style.map("ParamNav.TButton",
+              background=[("active", "#f3f4f6"), ("pressed", "#f3f4f6")],
+              foreground=[("active", "#111827")])
     
+    style.configure("ParamNavActive.TButton", font=("Segoe UI", 10, "bold"),
+                    padding=(15, 10), background="#fff7ed",
+                    foreground=COLOR_ACCENT, relief="flat", anchor="w")
+    style.map("ParamNavActive.TButton",
+              background=[("active", "#fff7ed"), ("pressed", "#fff7ed")],
+              foreground=[("active", COLOR_ACCENT)])
+    
+    # Style pour les actions des paramètres (Parcourir, Appliquer, etc.)
+    style.configure("ParamAction.TButton", font=("Segoe UI", 10, "bold"),
+                    padding=(15, 6), background=COLOR_ACCENT,
+                    foreground="white", relief="flat")
+    style.map("ParamAction.TButton",
+              background=[("active", "#d95f00"), ("pressed", "#d95f00")])
+              
+    # Style pour les boutons de sauvegarde des paramètres
+    style.configure("ParamSave.TButton", font=("Segoe UI", 10, "bold"),
+                    padding=(15, 6), background=COLOR_BG_DARK,
+                    foreground="white", relief="flat")
+    style.map("ParamSave.TButton",
+              background=[("active", COLOR_NAV_HOVER), ("pressed", COLOR_NAV_HOVER)])
+
     # Style pour les petits boutons
     style.configure("SmallSecondary.TButton", font=("Segoe UI", 9), padding=(6, 4),
                     background="#e5e5e5", relief="flat")
@@ -141,6 +162,9 @@ def display_read_only_param(parent, label_text, value, value_color=None):
 
 def create_setting_header(parent, title):
     """Crée un en-tête pour les sections de paramètres"""
-    tk.Label(parent, text=title, bg="#e5e7eb",
-             anchor="w", font=("Segoe UI", 11, "bold"),
-             padx=10, pady=5).pack(fill="x")
+    header_frame = tk.Frame(parent, bg=COLOR_CARD_BG)
+    header_frame.pack(fill="x")
+    tk.Label(header_frame, text=title, bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 16, "bold"),
+             padx=30, pady=10).pack(fill="x", pady=(10, 0))
+    ttk.Separator(header_frame, orient="horizontal").pack(fill="x", padx=30)

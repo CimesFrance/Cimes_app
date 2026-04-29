@@ -13,9 +13,9 @@ from src.ui.widgets.ui_utils import (
 def create_transmission_settings(view):
     """Construit le frame 'Transmission' et le retourne."""
     frame = ttk.Frame(view.param_content_frame, style="Card.TFrame")
-    create_setting_header(frame, "Transmission Programmé des Résultats")
+    create_setting_header(frame, "Transmission programmée des résultats")
 
-    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=20, pady=10)
+    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
 
     # Activation
@@ -30,8 +30,8 @@ def create_transmission_settings(view):
     view.transmission_params_frame.pack(fill="x", pady=(0, 10))
 
     # Mode
-    tk.Label(view.transmission_params_frame, text="Mode de transmission :",
-             bg=COLOR_CARD_BG, anchor="w",
+    tk.Label(view.transmission_params_frame, text="Mode de transmission",
+             bg=COLOR_CARD_BG, fg="#111827", anchor="w",
              font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(0, 10))
 
     mode_frame = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
@@ -58,21 +58,23 @@ def create_transmission_settings(view):
              bg=COLOR_CARD_BG, font=("Segoe UI", 9, "italic")).pack(side="left", padx=(10, 0))
 
     # Email
-    tk.Label(view.transmission_params_frame, text="Adresse Email pour transmission :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(10, 0))
+    tk.Label(view.transmission_params_frame, text="Adresse Email pour transmission",
+             bg=COLOR_CARD_BG, fg="#111827", anchor="w",
+             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(10, 5))
     ttk.Entry(view.transmission_params_frame, textvariable=view.app.transmission_email_var,
               width=40, font=("Segoe UI", 10)).pack(fill="x", pady=(0, 20))
 
     # Courbe corrigée DNA
     ttk.Checkbutton(view.transmission_params_frame,
                     text="Inclure la courbe corrigée DNA dans les rapports",
-                    variable=view.app.show_corrected_curve_var).pack(anchor="w", pady=(0, 20))
+                    variable=view.app.show_corrected_curve_var).pack(anchor="w", pady=(0, 10))
+
+    ttk.Separator(view.transmission_params_frame, orient="horizontal").pack(fill="x", pady=(10, 20))
 
     # Configuration du rapport PDF
-    tk.Label(view.transmission_params_frame, text="Configuration du Rapport PDF :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(20, 10))
+    tk.Label(view.transmission_params_frame, text="Configuration du rapport PDF",
+             bg=COLOR_CARD_BG, fg="#111827", anchor="w",
+             font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     report_options_frame = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
     report_options_frame.pack(fill="x", pady=(0, 15))
@@ -99,7 +101,7 @@ def create_transmission_settings(view):
     # Zone commentaire
     comment_frame = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
     comment_frame.pack(fill="x", pady=(15, 10))
-    tk.Label(comment_frame, text="Commentaire (optionnel) :", bg=COLOR_CARD_BG,
+    tk.Label(comment_frame, text="Commentaire (optionnel)", bg=COLOR_CARD_BG, fg="#4b5563",
              font=("Segoe UI", 10, "bold")).pack(anchor="w")
     view.comment_text = tk.Text(comment_frame, height=4, font=("Segoe UI", 10))
     view.comment_text.pack(fill="x", pady=(5, 0))
@@ -114,10 +116,12 @@ def create_transmission_settings(view):
              bg=COLOR_CARD_BG, fg="#dc2626",
              font=("Segoe UI", 9, "italic"), wraplength=500).pack(anchor="w")
 
+    ttk.Separator(view.transmission_params_frame, orient="horizontal").pack(fill="x", pady=(15, 20))
+
     # Bouton de sauvegarde
     ttk.Button(view.transmission_params_frame,
-               text="💾 Sauvegarder configuration rapport",
-               style="Secondary.TButton",
+               text="Sauvegarder",
+               style="ParamSave.TButton",
                command=lambda: _save_report_configuration(view)).pack(pady=(0, 10))
 
     _toggle_transmission_settings(view)

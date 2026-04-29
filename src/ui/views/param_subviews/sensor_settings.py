@@ -19,41 +19,43 @@ def create_sensor_settings(view):
     frame = ttk.Frame(view.param_content_frame, style="Card.TFrame")
     create_setting_header(frame, "Configuration du Capteur")
 
-    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=20, pady=10)
+    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
 
     # Adresse IP RTSP
-    tk.Label(inner, text="Adresse IP du Capteur RTSP :", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(5, 0))
+    tk.Label(inner, text="Adresse IP du Capteur RTSP", bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(0, 5))
     ttk.Entry(inner, textvariable=view.app.url_var, width=50,
               font=("Segoe UI", 10)).pack(fill="x")
     tk.Label(inner,
              text="Exemple : rtsp://utilisateur:motdepasse@192.168.1.10:554/stream",
              bg=COLOR_CARD_BG, fg="#6b7280",
-             font=("Segoe UI", 8, "italic")).pack(fill="x", pady=(0, 15))
+             font=("Segoe UI", 8, "italic")).pack(fill="x", pady=(2, 20))
 
     # Chemin de sauvegarde
-    tk.Label(inner, text="Chemin de sauvegarde des résultats :", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(5, 0))
+    tk.Label(inner, text="Chemin de sauvegarde des résultats", bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(0, 5))
 
     path_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
-    path_frame.pack(fill="x", pady=(0, 15))
+    path_frame.pack(fill="x", pady=(0, 20))
 
     ttk.Entry(path_frame, textvariable=view.app.results_path_var, width=50,
               font=("Segoe UI", 10)).pack(side="left", fill="x", expand=True)
-    ttk.Button(path_frame, text="Parcourir", style="Secondary.TButton",
-               command=lambda: _browse_results_path(view)).pack(side="left", padx=5)
+    ttk.Button(path_frame, text="Parcourir", style="ParamAction.TButton",
+               command=lambda: _browse_results_path(view)).pack(side="left", padx=(10, 0))
+
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(10, 20))
 
     # Mode de capture
-    tk.Label(inner, text="Mode de capture :", bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(15, 0))
+    tk.Label(inner, text="Mode de capture", bg=COLOR_CARD_BG, fg="#111827", anchor="w",
+             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(0, 10))
 
     mode_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     mode_frame.pack(fill="x", pady=(0, 15))
 
     ttk.Radiobutton(mode_frame, text="Automatique", value="automatique",
                     variable=view.app.capture_mode_var,
-                    command=view._toggle_capture_controls).pack(side="left", padx=(0, 20))
+                    command=view._toggle_capture_controls).pack(side="left", padx=(0, 30))
     ttk.Radiobutton(mode_frame, text="Manuel", value="manuel",
                     variable=view.app.capture_mode_var,
                     command=view._toggle_capture_controls).pack(side="left")
@@ -63,8 +65,8 @@ def create_sensor_settings(view):
     view.auto_params_frame.pack(fill="x", pady=(0, 20))
 
     tk.Label(view.auto_params_frame, text="Intervalle entre captures :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(5, 0))
+             bg=COLOR_CARD_BG, fg="#4b5563", anchor="w",
+             font=("Segoe UI", 9)).pack(fill="x", pady=(0, 5))
 
     view.capture_interval_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
     view.capture_interval_frame.pack(fill="x", pady=(0, 15))
@@ -78,51 +80,50 @@ def create_sensor_settings(view):
     # Programmation des heures
     tk.Label(view.auto_params_frame,
              text="Programmation des heures de fonctionnement :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(5, 0))
+             bg=COLOR_CARD_BG, fg="#4b5563", anchor="w",
+             font=("Segoe UI", 9)).pack(fill="x", pady=(5, 5))
 
     view.time_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
-    view.time_frame.pack(fill="x", pady=(0, 10))
+    view.time_frame.pack(fill="x", pady=(0, 15))
 
-    tk.Label(view.time_frame, text="Début :", bg=COLOR_CARD_BG,
-             font=("Segoe UI", 10)).pack(side="left", padx=(0, 5))
+    tk.Label(view.time_frame, text="Début :", bg=COLOR_CARD_BG, fg="#4b5563",
+             font=("Segoe UI", 9)).pack(side="left", padx=(0, 5))
     ttk.Entry(view.time_frame, textvariable=view.app.start_time_var, width=8,
               font=("Segoe UI", 10)).pack(side="left", padx=(0, 20))
-    tk.Label(view.time_frame, text="Fin :", bg=COLOR_CARD_BG,
-             font=("Segoe UI", 10)).pack(side="left", padx=(0, 5))
+    tk.Label(view.time_frame, text="Fin :", bg=COLOR_CARD_BG, fg="#4b5563",
+             font=("Segoe UI", 9)).pack(side="left", padx=(0, 5))
     ttk.Entry(view.time_frame, textvariable=view.app.end_time_var, width=8,
               font=("Segoe UI", 10)).pack(side="left")
 
     # Jours de fonctionnement
     tk.Label(view.auto_params_frame, text="Jours de fonctionnement :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(15, 0))
+             bg=COLOR_CARD_BG, fg="#4b5563", anchor="w",
+             font=("Segoe UI", 9)).pack(fill="x", pady=(5, 5))
 
     view.days_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
     view.days_frame.pack(fill="x", pady=(0, 20))
 
     for jour in ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]:
         ttk.Checkbutton(view.days_frame, text=jour[:3],
-                        variable=view.app.days_vars[jour]).pack(side="left", padx=(0, 10))
+                        variable=view.app.days_vars[jour]).pack(side="left", padx=(0, 15))
 
     # Paramètres manuels
     view.manual_params_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     view.manual_params_frame.pack(fill="x", pady=(0, 20))
 
-    tk.Label(view.manual_params_frame, text="Mode Manuel :",
-             bg=COLOR_CARD_BG, anchor="w",
-             font=("Segoe UI", 10, "bold")).pack(fill="x", pady=(5, 0))
     tk.Label(view.manual_params_frame,
              text="En mode manuel, vous déclenchez les captures manuellement\n"
                   "en cliquant sur le bouton 'Capture Manuelle' dans la vue Mesure.",
              bg=COLOR_CARD_BG, fg="#6b7280",
-             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(5, 0))
+             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(0, 0))
 
     # Bouton de sauvegarde
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(0, 20))
+    
     button_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
-    button_frame.pack(fill="x", pady=(10, 0))
+    button_frame.pack(fill="x", pady=(0, 10))
     ttk.Button(button_frame, text="Sauvegarder les Paramètres",
-               style="Start.TButton",
+               style="ParamSave.TButton",
                command=lambda: _save_sensor_settings(view)).pack(side="left")
 
     view._toggle_capture_controls()

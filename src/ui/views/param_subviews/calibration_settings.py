@@ -20,11 +20,11 @@ def create_calibration_settings(view):
     frame = ttk.Frame(view.param_content_frame, style="Card.TFrame")
     create_setting_header(frame, "Calibration Caméra")
 
-    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=20, pady=10)
+    inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
 
     # Statut calibration
-    tk.Label(inner, text="📊 Statut de Calibration", bg=COLOR_CARD_BG,
+    tk.Label(inner, text="Statut de calibration", bg=COLOR_CARD_BG, fg="#111827",
              anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     status_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
@@ -42,21 +42,23 @@ def create_calibration_settings(view):
              bg=COLOR_CARD_BG, font=("Segoe UI", 10), anchor="w").pack(side="left")
     tk.Label(row2, textvariable=view.app.facteur_conversion, bg=COLOR_CARD_BG,
              font=("Segoe UI", 10), anchor="w").pack(side="left")
-    ttk.Button(row2, text="Modifier", style="Secondary.TButton",
+    ttk.Button(row2, text="Modifier", style="ParamAction.TButton",
                command=lambda: _call_measure_app(view)).pack(side="left", padx=(10, 0))
 
     tk.Label(inner,
              text="Les fichiers de calibration sont automatiquement chargés au démarrage\n"
                   "s'ils sont présents dans le dossier de l'application.",
              bg=COLOR_CARD_BG, fg="#6b7280",
-             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(0, 20))
+             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(0, 15))
+
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(5, 15))
 
     # Correction d'image
-    tk.Label(inner, text="⚙️ Correction d'Image", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(10, 0))
+    tk.Label(inner, text="Correction d'image", bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     corr_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
-    corr_frame.pack(fill="x", pady=10)
+    corr_frame.pack(fill="x", pady=(0, 10))
 
     view.undistort_check = ttk.Checkbutton(corr_frame,
                                            text="Utiliser la correction de distorsion",
@@ -73,11 +75,13 @@ def create_calibration_settings(view):
     tk.Label(corr_frame,
              text="Ces corrections sont appliquées automatiquement lors de l'analyse.",
              bg=COLOR_CARD_BG, fg="#6b7280",
-             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(5, 0))
+             font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(5, 10))
+
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(5, 15))
 
     # Échelle de calibration
-    tk.Label(inner, text="📏 Échelle de Calibration", bg=COLOR_CARD_BG,
-             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(20, 10))
+    tk.Label(inner, text="Échelle de calibration", bg=COLOR_CARD_BG, fg="#111827",
+             anchor="w", font=("Segoe UI", 11, "bold")).pack(fill="x", pady=(0, 10))
 
     scale_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     scale_frame.pack(fill="x", pady=(0, 10))
@@ -92,7 +96,7 @@ def create_calibration_settings(view):
     view.calibration_scale_entry.pack(side="left", padx=(5, 10))
 
     view.apply_scale_btn = ttk.Button(scale_frame, text="Appliquer",
-                                      style="Secondary.TButton",
+                                      style="ParamAction.TButton",
                                       command=lambda: _apply_calibration_scale(view))
     view.apply_scale_btn.pack(side="left")
 
@@ -118,10 +122,12 @@ def create_calibration_settings(view):
              bg=COLOR_CARD_BG, fg="#6b7280",
              font=("Segoe UI", 9, "italic")).pack(anchor="w", pady=(5, 20))
 
+    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(0, 20))
+
     button_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
-    button_frame.pack(fill="x", pady=(10, 0))
-    ttk.Button(button_frame, text="💾 Sauvegarder toute la configuration",
-               style="Start.TButton",
+    button_frame.pack(fill="x", pady=(0, 10))
+    ttk.Button(button_frame, text="Sauvegarder",
+               style="ParamSave.TButton",
                command=lambda: _save_all_calibration_settings(view)).pack()
 
     return frame
