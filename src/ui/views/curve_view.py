@@ -28,8 +28,10 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         self.particles_tree    = None
         
         # Icônes
-        self.icon_stats = load_icon("bar-chart.png", size=(20, 20))
-        self.icon_table = load_icon("dashboard.png", size=(20, 20))
+        self.icon_stats   = load_icon("bar-chart.png", size=(20, 20))
+        self.icon_table   = load_icon("dashboard.png", size=(20, 20))
+        self.icon_history = load_icon("history.png", size=(20, 20))
+        self.icon_wave    = load_icon("wave-graph.png", size=(20, 20))
 
         self._build_ui()
 
@@ -50,8 +52,8 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         stats_frame = ttk.Frame(stats_column, style="Card.TFrame")
         stats_frame.pack(fill="both", expand=True)
 
-        tk.Label(stats_frame, text=" Statistiques Granulométriques", image=self.icon_stats,
-                 compound="left", bg="#e5e7eb",
+        tk.Label(stats_frame, text=" Statistiques granulométriques", image=self.icon_stats,
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
                  anchor="w", font=("Segoe UI", 12, "bold"), padx=10, pady=5).pack(fill="x")
 
         self.stats_inner_frame = tk.Frame(stats_frame, bg=COLOR_CARD_BG)
@@ -83,7 +85,7 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         table_frame.pack(fill="both", expand=True)
 
         tk.Label(table_frame, text=" Tableau des cailloux détectés", image=self.icon_table,
-                 compound="left", bg="#e5e7eb",
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
                  anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         particles_container = tk.Frame(table_frame, bg=COLOR_CARD_BG)
@@ -94,7 +96,8 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         history_frame = ttk.Frame(middle_column, style="Card.TFrame")
         history_frame.pack(fill="both", expand=True, pady=(10, 0))
 
-        tk.Label(history_frame, text="🕐 Historique des Captures", bg="#e5e7eb",
+        tk.Label(history_frame, text=" Historique des captures", image=self.icon_history,
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
                  anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         date_sel_frame = tk.Frame(history_frame, bg=COLOR_CARD_BG, padx=10, pady=10)
@@ -105,7 +108,7 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
         comparison_frame.pack(fill="x", pady=(0, 10))
 
         self.comparison_btn = ttk.Button(comparison_frame,
-                                         text="🔄 Comparaison captures",
+                                         text="🔄 Comparaison capture",
                                          style="Secondary.TButton",
                                          command=self._open_comparison_dialog)
         self.comparison_btn.pack(side="left", fill="x", expand=True, padx=(0, 2.5))
@@ -176,20 +179,21 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
 
         # Onglet 1 : Courbe Granulométrique
         curve_tab  = ttk.Frame(notebook)
-        notebook.add(curve_tab, text="📈 Courbe Granulométrique")
+        notebook.add(curve_tab, text=" Courbe granulométrique")
 
         curve_card = ttk.Frame(curve_tab, style="Card.TFrame")
         curve_card.pack(fill="both", expand=True)
 
-        tk.Label(curve_card, text="Courbe Granulométrique Cumulative", bg="#e5e7eb",
-                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10).pack(fill="x")
+        tk.Label(curve_card, text=" Courbe granulométrique cumulative", image=self.icon_wave,
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
+                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         self.graph_frame = tk.Frame(curve_card, bg=COLOR_CARD_BG)
         self.graph_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         self.fig = Figure(figsize=(10, 6), dpi=100)
         self.ax  = self.fig.add_subplot(111)
-        self.ax.set_title("Courbe Granulométrique Cumulative", fontsize=14, fontweight="bold")
+        self.ax.set_title("Courbe granulométrique cumulative", fontsize=14, fontweight="bold")
         self.ax.set_xlabel("Taille du tamis (mm)", fontsize=12)
         self.ax.set_ylabel("% passant", fontsize=12)
         self.ax.grid(True, alpha=0.3)
@@ -209,20 +213,21 @@ class CurveView(StatsPanel, HistoryPanel, ChartPanel, ComparisonDialog):
 
         # Onglet 2 : Distribution Granulométrique
         hist_tab  = ttk.Frame(notebook)
-        notebook.add(hist_tab, text="📊 Distribution Granulométrique")
+        notebook.add(hist_tab, text=" Distribution granulométrique")
 
         hist_card = ttk.Frame(hist_tab, style="Card.TFrame")
         hist_card.pack(fill="both", expand=True)
 
-        tk.Label(hist_card, text="Histogramme de Distribution des Particules", bg="#e5e7eb",
-                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10).pack(fill="x")
+        tk.Label(hist_card, text=" Histogramme de distribution des particules", image=self.icon_stats,
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
+                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         self.hist_frame = tk.Frame(hist_card, bg=COLOR_CARD_BG)
         self.hist_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
         self.hist_fig = Figure(figsize=(10, 6), dpi=100)
         self.hist_ax  = self.hist_fig.add_subplot(111)
-        self.hist_ax.set_title("Distribution Granulométrique des Particules",
+        self.hist_ax.set_title("Distribution granulométrique des particules",
                                fontsize=14, fontweight="bold")
         self.hist_ax.set_xlabel("Taille (mm)", fontsize=12)
         self.hist_ax.set_ylabel("Nombre de particules", fontsize=12)

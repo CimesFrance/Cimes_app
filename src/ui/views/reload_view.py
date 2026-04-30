@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from src.ui.widgets.ui_utils import (
-    COLOR_FRAME_BG, COLOR_CARD_BG, load_icon
+    COLOR_FRAME_BG, COLOR_CARD_BG, COLOR_ACCENT, load_icon
 )
 from src.ui.views.reload_subviews.image_analyzer import ImageAnalyzer
 from src.ui.views.reload_subviews.csv_manager    import CsvManager
@@ -45,8 +45,9 @@ class ReloadView(ImageAnalyzer, CsvManager):
         sidebar.grid(row=0, column=0, sticky="nsew", padx=(10, 5), pady=10)
         sidebar.pack_propagate(False)
 
-        tk.Label(sidebar, text="Analyse d'Images Existantes", bg="#e5e7eb",
-                 anchor="w", font=("Segoe UI", 12, "bold"), padx=10, pady=10).pack(fill="x")
+        tk.Label(sidebar, text=" Analyse d'images existantes", image=self.icon_analyze,
+                 compound="left", bg="#e5e7eb", fg=COLOR_ACCENT,
+                 anchor="w", font=("Segoe UI", 12, "bold"), padx=10, pady=5).pack(fill="x")
 
         content = tk.Frame(sidebar, bg=COLOR_CARD_BG, padx=15, pady=15)
         content.pack(fill="both", expand=True)

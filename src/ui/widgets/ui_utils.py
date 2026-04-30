@@ -130,8 +130,8 @@ def create_display_card(parent, title, row, col, padx_tuple, default_text=None):
 
     card.grid(row=row, column=col, sticky="nsew", padx=padx_tuple, pady=pady_tuple)
 
-    widget = tk.Label(card, text=title, bg="#e5e7eb",
-                      anchor="w", padx=10, font=("Segoe UI", 11, "bold"))
+    widget = tk.Label(card, text=title, bg="#e5e7eb", fg=COLOR_ACCENT,
+                      anchor="w", padx=10, font=("Segoe UI", 11, "bold"), pady=5)
     widget.pack(fill="x")
 
     image_container = tk.Frame(card, bg="#f9fafb", padx=10, pady=10)

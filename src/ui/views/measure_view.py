@@ -47,8 +47,8 @@ class MeasureView(CapturePipeline, ChartRenderer):
         info_card = ttk.Frame(self.frame, style="Card.TFrame")
         info_card.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-        tk.Label(info_card, text="Capteur - Contrôles", bg="#e5e7eb",
-                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10).pack(fill="x")
+        tk.Label(info_card, text="Capteur - contrôles", bg="#e5e7eb", fg=COLOR_ACCENT,
+                 anchor="w", font=("Segoe UI", 11, "bold"), padx=10, pady=5).pack(fill="x")
 
         tk.Label(info_card, text="Facteur de conversion actuel :").pack(fill="x")
         tk.Label(info_card, textvariable=self.app.facteur_conversion).pack(fill="x")
@@ -79,7 +79,7 @@ class MeasureView(CapturePipeline, ChartRenderer):
         ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=10)
 
         # État du capteur
-        tk.Label(inner, text="État du Capteur", bg=COLOR_CARD_BG,
+        tk.Label(inner, text="État du capteur", bg=COLOR_CARD_BG,
                  font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(5, 0))
 
         status_row = tk.Frame(inner, bg=COLOR_CARD_BG)
@@ -101,7 +101,7 @@ class MeasureView(CapturePipeline, ChartRenderer):
                  fg="#6b7280", font=("Segoe UI", 9, "italic")).pack(side="left", padx=5)
 
         # Paramètres actifs
-        tk.Label(inner, text="Paramètres Actifs", bg=COLOR_CARD_BG,
+        tk.Label(inner, text="Paramètres actifs", bg=COLOR_CARD_BG,
                  font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(15, 0))
 
         self.params_active_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
@@ -110,7 +110,7 @@ class MeasureView(CapturePipeline, ChartRenderer):
         ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=10)
 
         # Statistiques de session
-        tk.Label(inner, text="Statistiques de Session", bg=COLOR_CARD_BG,
+        tk.Label(inner, text="Statistiques de session", bg=COLOR_CARD_BG,
                  font=("Segoe UI", 11, "bold")).pack(anchor="w", pady=(5, 0))
 
         tk.Label(inner, text="Heure système :", bg=COLOR_CARD_BG,
@@ -126,7 +126,7 @@ class MeasureView(CapturePipeline, ChartRenderer):
         tk.Label(inner, text="Particules détectées (dernière capture) :",
                  bg=COLOR_CARD_BG, font=("Segoe UI", 10)).pack(anchor="w", pady=(10, 0))
         tk.Label(inner, textvariable=self.app.particles_count_var, bg=COLOR_CARD_BG,
-                 fg="#0ea5e9", font=("Segoe UI", 16, "bold")).pack(anchor="w")
+                 fg="#2C3E50", font=("Segoe UI", 16, "bold")).pack(anchor="w")
 
         tk.Label(inner, text="Total images capturées :",
                  bg=COLOR_CARD_BG, font=("Segoe UI", 10)).pack(anchor="w", pady=(10, 0))
@@ -148,25 +148,25 @@ class MeasureView(CapturePipeline, ChartRenderer):
         grid_frame.rowconfigure(1, weight=1)
 
         camera_card = create_display_card(
-            grid_frame, "Flux Caméra Temps Réel", 0, 0, (0, 5),
+            grid_frame, "Flux caméra temps réel", 0, 0, (0, 5),
             "Flux caméra (Hors-ligne)\nConfigurer dans Paramètres."
         )
         self.live_label = camera_card.winfo_children()[1].winfo_children()[0]
 
         cap_card = create_display_card(
-            grid_frame, "Image Capturée", 0, 1, (5, 0),
+            grid_frame, "Image capturée", 0, 1, (5, 0),
             "Aucune image capturée."
         )
         self.captured_label = cap_card.winfo_children()[1].winfo_children()[0]
 
         seg_card = create_display_card(
-            grid_frame, "Masque Segmenté", 1, 0, (0, 5),
+            grid_frame, "Masque segmenté", 1, 0, (0, 5),
             "En attente de segmentation..."
         )
         self.segmented_label = seg_card.winfo_children()[1].winfo_children()[0]
 
         curve_card = create_display_card(
-            grid_frame, "Courbe Granulométrique", 1, 1, (5, 0),
+            grid_frame, "Courbe granulométrique", 1, 1, (5, 0),
             "En attente de données pour la courbe..."
         )
         self.curve_label = curve_card.winfo_children()[1].winfo_children()[0]
@@ -195,8 +195,7 @@ class MeasureView(CapturePipeline, ChartRenderer):
         mode_display = "Automatique" if mode == "automatique" else "Manuel"
         mode_color = COLOR_STATUS_RUNNING if mode == "automatique" else COLOR_ACCENT
 
-        display_read_only_param(self.params_active_frame, "Mode capture :", mode_display,
-                                value_color=mode_color)
+        display_read_only_param(self.params_active_frame, "Mode capture :", mode_display)
         display_read_only_param(self.params_active_frame, "URL/IP active :", url_display)
 
         if mode == "automatique":

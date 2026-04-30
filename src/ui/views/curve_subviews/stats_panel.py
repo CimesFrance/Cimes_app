@@ -21,7 +21,7 @@ class StatsPanel:
         for widget in self.stats_content_frame.winfo_children():
             widget.destroy()
 
-        tk.Label(self.stats_content_frame, text="📊 STATISTIQUES GRANULOMÉTRIQUES",
+        tk.Label(self.stats_content_frame, text="",
                  bg=COLOR_CARD_BG, font=("Segoe UI", 12, "bold"),
                  fg=COLOR_ACCENT).pack(anchor="w", pady=(0, 15), padx=5)
 
