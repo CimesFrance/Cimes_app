@@ -90,7 +90,7 @@ def create_calibration_settings(view):
              font=("Segoe UI", 10), width=15, anchor="w").pack(side="left")
 
     view.calibration_scale_entry = ttk.Entry(
-        scale_frame, textvariable=view.app.calibration_scale_var,
+        scale_frame, textvariable=view.app.facteur_conversion,
         width=15, font=("Segoe UI", 10)
     )
     view.calibration_scale_entry.pack(side="left", padx=(5, 10))
@@ -109,11 +109,13 @@ def create_calibration_settings(view):
 
     view.current_scale_label = tk.Label(
         current_scale_frame,
-        text=f"{view.app.scale_var.get()} mm/px",
+        textvariable=view.app.facteur_conversion,
         bg=COLOR_CARD_BG, fg=COLOR_ACCENT,
         font=("Segoe UI", 10, "bold")
     )
     view.current_scale_label.pack(side="left", padx=(5, 0))
+    tk.Label(current_scale_frame, text=" mm/px", bg=COLOR_CARD_BG,
+             font=("Segoe UI", 10, "bold"), fg=COLOR_ACCENT).pack(side="left")
 
     tk.Label(inner,
              text="Entrez la valeur d'échelle pour convertir les pixels en millimètres.\n"
@@ -180,13 +182,14 @@ def _update_homography_status(view):
 
 def _apply_calibration_scale(view):
     try:
-        scale = float(view.app.calibration_scale_var.get().replace(",", "."))
+        scale_str = view.app.facteur_conversion.get().replace(",", ".")
+        scale = float(scale_str)
         if scale <= 0:
             raise ValueError("L'échelle doit être positive")
-        # Mettre à jour scale_var ET facteur_conversion (coefficient pixel-mm de l'onglet Paramètres)
-        view.app.scale_var.set(f"{scale:.4f}")
+        
+        # Mettre à jour la variable unique (déjà fait par textvariable mais on formate si besoin)
         view.app.facteur_conversion.set(str(scale))
-        view.current_scale_label.config(text=f"{view.app.scale_var.get()} mm/px")
+        
         # Sauvegarder immédiatement dans le fichier JSON
         from src.utils.file_manager import save_conversion_parameter
         save_conversion_parameter(scale)
@@ -198,7 +201,7 @@ def _apply_calibration_scale(view):
 def _save_all_calibration_settings(view):
     try:
         settings = {
-            "scale":              view.app.scale_var.get(),
+            "scale":              view.app.facteur_conversion.get(),
             "use_undistortion":   view.app.use_undistortion_var.get(),
             "use_homography":     view.app.use_homography_var.get(),
             "calibration_files_loaded": {

@@ -207,12 +207,12 @@ def save_correction_parameters(scale, offset):
 def load_conversion_param():
     """Charge le facteur de conversion mm/pixel depuis le fichier JSON central"""
     settings_file = os.path.join(get_settings_dir(), "calibration_settings.json")
-    valeur = 1.0
+    valeur = 1.34
     if os.path.exists(settings_file):
         try:
             with open(settings_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                valeur = data.get("facteur_conversion", 1.0)
+                valeur = data.get("facteur_conversion", 1.34)
         except Exception as e:
             messagebox.showwarning("Chargement Calibration", f"Erreur lors du chargement du facteur de conversion.\n\nDétails : {e}")   
     # Migration depuis l'ancien format .txt

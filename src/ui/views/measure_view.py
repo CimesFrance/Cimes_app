@@ -182,10 +182,10 @@ class MeasureView(CapturePipeline, ChartRenderer):
             url_display = url_display[:27] + "..."
 
         try:
-            scale_value = float(self.app.scale_var.get().replace(",", "."))
+            scale_value = float(self.app.facteur_conversion.get().replace(",", "."))
             scale_display = f"{scale_value:.4f}"
         except Exception:
-            scale_display = self.app.scale_var.get()
+            scale_display = self.app.facteur_conversion.get()
 
         path_display = self.app.results_path_var.get()
         if len(path_display) > 30:

@@ -197,7 +197,6 @@ class CimesApp(CameraController, tk.Tk):
 
     def _load_initial_settings(self):
         load_sensor_settings(self)
-        self.scale_var.set(1.0)
         load_report_configuration(self)
         load_calibration_settings(self)
 
@@ -220,7 +219,7 @@ class CimesApp(CameraController, tk.Tk):
         self.start_time_var.trace_add("write", lambda *a: self._update_active_params_display())
         self.end_time_var.trace_add("write", lambda *a: self._update_active_params_display())
         self.capture_mode_var.trace_add("write", lambda *a: self._on_capture_mode_changed())
-        self.scale_var.trace_add("write", lambda *a: self._on_scale_changed())
+        self.facteur_conversion.trace_add("write", lambda *a: self._on_scale_changed())
 
     def _update_clock(self):
         self.datetime_var.set(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
@@ -247,7 +246,7 @@ class CimesApp(CameraController, tk.Tk):
 
     def _on_scale_changed(self):
         try:
-            scale_value = float(self.scale_var.get().replace(",", "."))
+            scale_value = float(self.facteur_conversion.get().replace(",", "."))
             if scale_value <= 0:
                 return
             self._update_active_params_display()

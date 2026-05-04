@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import json
 from datetime import datetime
@@ -7,10 +7,9 @@ from tkinter import messagebox
 def load_sensor_settings(app):
     """Charge les paramètres du capteur"""
     try:
-        current_scale = app.scale_var.get()
+        current_scale = app.facteur_conversion.get()
         if "B" in str(current_scale) or "," in str(current_scale) or current_scale == "1,728B":
-            app.scale_var.set("0.10")
-            app.calibration_scale_var.set("0.10")
+            app.facteur_conversion.set("1.34")
     
         settings_file = os.path.join(os.path.expanduser("~"), "CIMES_Settings", "sensor_settings.json")
     
@@ -18,13 +17,12 @@ def load_sensor_settings(app):
             with open(settings_file, 'r', encoding='utf-8') as f:
                 settings = json.load(f)
         
-            file_scale = settings.get("scale", "0.10")
+            file_scale = settings.get("scale", "1.34")
             if isinstance(file_scale, str) and ("B" in file_scale or file_scale == "1,728B"):
-                file_scale = "0.10"
+                file_scale = "1.34"
         
-            # Mettre à jour les variables d'échelle
-            app.scale_var.set(file_scale)
-            app.calibration_scale_var.set(file_scale)
+            # Mettre à jour la variable d'échelle unique
+            app.facteur_conversion.set(file_scale)
         
             # Charger les autres paramètres
             app.url_var.set(settings.get("url", app.url_var.get()))
@@ -48,16 +46,14 @@ def load_sensor_settings(app):
         
         else:
             # Valeurs par défaut
-            app.scale_var.set("0.10")
-            app.calibration_scale_var.set("0.10")
+            app.facteur_conversion.set("1.34")
             app.show_corrected_curve_var.set(True)
             app.capture_mode_var.set("automatique")
             
     except Exception as e:
         messagebox.showwarning("Paramètres Capteur", f"Erreur lors du chargement des paramètres du capteur (valeurs par défaut appliquées).\n\nDétails : {e}")
         # Valeurs par défaut en cas d'erreur
-        app.scale_var.set("0.10")
-        app.calibration_scale_var.set("0.10")
+        app.facteur_conversion.set("1.34")
         app.show_corrected_curve_var.set(True)
         app.capture_mode_var.set("automatique")
 
@@ -104,7 +100,7 @@ def save_configuration(app, config_type="all"):
                     "unit": app.capture_time_unit_var.get()
                 },
                 "capture_mode": app.capture_mode_var.get(),
-                "scale": app.scale_var.get(),
+                "scale": app.facteur_conversion.get(),
                 "dna_correction_enabled": app.show_corrected_curve_var.get()
             }
             
@@ -131,7 +127,7 @@ def save_configuration(app, config_type="all"):
         if config_type in ["calibration", "all"]:
             # Sauvegarder les paramètres de calibration
             calibration_settings = {
-                "scale": app.scale_var.get(),
+                "scale": app.facteur_conversion.get(),
                 "use_undistortion": app.use_undistortion_var.get(),
                 "use_homography": app.use_homography_var.get(),
                 "calibration_files_loaded": {
@@ -162,12 +158,11 @@ def load_calibration_settings(app):
                 settings = json.load(f)
             
             # Appliquer les paramètres de calibration
-            scale = settings.get("scale", "0.10")
+            scale = settings.get("scale", "1.34")
             if isinstance(scale, str) and ("B" in scale or scale == "1,728B"):
-                scale = "0.10"
+                scale = "1.34"
             
-            app.scale_var.set(scale)
-            app.calibration_scale_var.set(scale)
+            app.facteur_conversion.set(scale)
             app.use_undistortion_var.set(settings.get("use_undistortion", False))
             app.use_homography_var.set(settings.get("use_homography", False))
             

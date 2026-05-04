@@ -40,7 +40,6 @@ def initialize_variables(app):
     app.capture_time_val_var = tk.StringVar(value="5")
     app.capture_time_unit_var = tk.StringVar(value="s")
     app.save_delay_display_var = tk.StringVar(value="5 s")
-    app.scale_var = tk.StringVar(value="1,0")
 
     # Statistiques
     app.time_left_capture_var = tk.StringVar(value="--")
@@ -114,8 +113,6 @@ def initialize_variables(app):
     app.homo_matrix = None
 
     # Conversion mm-pixel : chargé depuis le JSON de calibration
-    # facteur_conversion = "coefficient de conversion pixel-mm" affiché dans l'onglet Paramètres
+    # facteur_conversion = "coefficient de conversion pixel-mm" et "Échelle (mm/px)"
     param = load_conversion_param()
     app.facteur_conversion = tk.StringVar(value=str(param))
-    # calibration_scale_var (champ éditable Paramètres) initialisé à la même valeur
-    app.calibration_scale_var = tk.StringVar(value=str(param))

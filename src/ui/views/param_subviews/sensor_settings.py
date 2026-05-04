@@ -150,7 +150,7 @@ def _save_sensor_settings(view):
             "unit":  view.app.capture_time_unit_var.get(),
         },
         "capture_mode": view.app.capture_mode_var.get(),
-        "scale":        view.app.scale_var.get(),
+        "scale":        view.app.facteur_conversion.get(),
         "dna_correction_enabled": view.app.show_corrected_curve_var.get(),
     }
     try:
