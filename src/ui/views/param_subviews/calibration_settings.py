@@ -12,7 +12,7 @@ import sys
 from src.ui.widgets.ui_utils import (
     COLOR_CARD_BG, COLOR_ACCENT, create_setting_header
 )
-from src.utils.file_manager import load_calibration_files, load_conversion_param
+from src.utils.file_manager import load_calibration_files, load_conversion_param, get_project_root
 
 
 def create_calibration_settings(view):
@@ -138,7 +138,7 @@ def create_calibration_settings(view):
 def _call_measure_app(view):
     if hasattr(view, "calibration_process") and view.calibration_process.poll() is None:
         return
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    root_dir = get_project_root()
     script_path = os.path.normpath(
         os.path.join(root_dir, "modules", "app_calibrage_cam", "main.py")
     )
@@ -183,9 +183,14 @@ def _apply_calibration_scale(view):
         scale = float(view.app.calibration_scale_var.get().replace(",", "."))
         if scale <= 0:
             raise ValueError("L'échelle doit être positive")
+        # Mettre à jour scale_var ET facteur_conversion (coefficient pixel-mm de l'onglet Paramètres)
         view.app.scale_var.set(f"{scale:.4f}")
+        view.app.facteur_conversion.set(str(scale))
         view.current_scale_label.config(text=f"{view.app.scale_var.get()} mm/px")
-        messagebox.showinfo("Succès", f"Échelle appliquée: {scale:.4f} mm/px")
+        # Sauvegarder immédiatement dans le fichier JSON
+        from src.utils.file_manager import save_conversion_parameter
+        save_conversion_parameter(scale)
+        messagebox.showinfo("Succès", f"Échelle appliquée et sauvegardée : {scale:.4f} mm/px")
     except ValueError as e:
         messagebox.showerror("Erreur", f"Erreur d'application: {str(e)}")
 

@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from tkinter import messagebox
 import cv2
@@ -12,6 +13,12 @@ def creer_dossier(path):
     """Crée un dossier s'il n'existe pas"""
     os.makedirs(path, exist_ok=True)
     return path
+
+def get_project_root():
+    """Renvoie le chemin absolu du projet (compatible PyInstaller)."""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        return sys._MEIPASS
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 def save_capture_data(capture_data, results_path, app):
     """Sauvegarde les données d'une capture"""
@@ -117,7 +124,7 @@ def load_calibration_files():
     dist = None
     homo_matrix = None
     # Chemin du répertoire racine
-    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    root_dir = get_project_root()
     # 1. Charger camera_params.npz
     camera_params_path = os.path.join(root_dir, "assets", "calibration_maj_1.npz")
     if os.path.exists(camera_params_path):
@@ -173,7 +180,7 @@ def load_correction_parameters():
         except Exception as e:
             messagebox.showwarning("Chargement Paramètres", f"Erreur lors du chargement des paramètres de correction.\n\nDétails : {e}")     
     # Tentative de migration depuis l'ancien format .txt si le JSON n'existe pas ou est incomplet
-    old_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "param_correct.txt")
+    old_file = os.path.join(get_project_root(), "src", "utils", "param_correct.txt")
     if not os.path.exists(settings_file) and os.path.exists(old_file):
         try:
             with open(old_file, "r", encoding="utf-8") as f:
@@ -209,7 +216,7 @@ def load_conversion_param():
         except Exception as e:
             messagebox.showwarning("Chargement Calibration", f"Erreur lors du chargement du facteur de conversion.\n\nDétails : {e}")   
     # Migration depuis l'ancien format .txt
-    old_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "param_convers_mm_pixel.txt")
+    old_file = os.path.join(get_project_root(), "src", "utils", "param_convers_mm_pixel.txt")
     if not os.path.exists(settings_file) and os.path.exists(old_file):
         try:
             with open(old_file, "r", encoding="utf-8") as f:

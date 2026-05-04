@@ -205,7 +205,8 @@ class CameraController:
         if hasattr(self, "correction_process") and self.correction_process.poll() is None:
             return
 
-        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        from src.utils.file_manager import get_project_root
+        root_dir = get_project_root()
         script_path = os.path.join(root_dir, "modules", "app_change_corr_params", "main.py")
         script_path = os.path.normpath(script_path)
         self.correction_process = subprocess.Popen([sys.executable, script_path])

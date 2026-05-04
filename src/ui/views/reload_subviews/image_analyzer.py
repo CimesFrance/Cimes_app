@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import threading
 import os
+import traceback
 from datetime import datetime
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -124,31 +125,30 @@ class ImageAnalyzer:
             messagebox.showwarning("Attention", "Veuillez d'abord sélectionner une image.")
             return
         try:
-            scale = float(self.app.scale_var.get().replace(",", "."))
+            # Coefficient de conversion pixel→mm, synchronisé avec l'onglet Paramètres
+            facteur = float(self.app.facteur_conversion.get().replace(",", "."))
             self.analyze_btn.config(state="disabled", text="Analyse en cours...")
             threading.Thread(
                 target=self._process_loaded_image,
-                args=(self.loaded_image_data.copy(), scale)
+                args=(self.loaded_image_data.copy(), facteur)
             ).start()
         except ValueError:
             messagebox.showerror("Erreur", "Échelle invalide. Vérifiez les paramètres.")
             self.analyze_btn.config(state="normal", text="🔬 Analyser l'image")
 
-    def _process_loaded_image(self, image, scale):
+    def _process_loaded_image(self, image, facteur):
         try:
             processed_frame = image.copy()
+            # Segmentation : on passe facteur pour que particles_data ait les bonnes valeurs en mm
             masks, segmented_img, particles_data, _, L_min_axis, L_max_axis = \
-                segment_and_analyze(processed_frame, 1)
-            L_min_axis = [
-                elt * float(self.app.facteur_conversion.get())
-                for elt in L_min_axis
-            ]
+                segment_and_analyze(processed_frame, facteur)
+            # L_min_axis est en pixels bruts — conversion pixels→mm effectuée une seule fois ci-dessous
             tamis_exp, cumulative_raw, cumulative_corrected, minor_axes_mm = \
                 calculate_granulometric_curve_with_dna(
                     particles_data, L_min_axis,
                     self.app.correction_granulo["scale"].get(),
                     self.app.correction_granulo["offset"].get(),
-                    scale
+                    facteur
                 )
             capture_data = {
                 "timestamp":            datetime.now(),
@@ -159,21 +159,20 @@ class ImageAnalyzer:
                 "particles_data":       particles_data,
                 "L_min_axis":           L_min_axis,
                 "L_max_axis":           L_max_axis,
-                "L_min_axis_mm":        (np.array(L_min_axis) * scale).tolist() if L_min_axis else [],
-                "L_max_axis_mm":        (np.array(L_max_axis) * scale).tolist() if L_max_axis else [],
+                "L_min_axis_mm":        (np.array(L_min_axis) * facteur).tolist() if L_min_axis else [],
+                "L_max_axis_mm":        (np.array(L_max_axis) * facteur).tolist() if L_max_axis else [],
                 "tamis_exp":            tamis_exp,
                 "cumulative_raw":       cumulative_raw,
                 "cumulative_corrected": cumulative_corrected,
                 "minor_axes_mm":        minor_axes_mm,
                 "particles_count":      len(particles_data),
-                "scale":                scale,
+                "scale":                facteur,
                 "source":               "loaded",
             }
             self.app.after(0, lambda: self._display_loaded_results(capture_data))
         except Exception as e:
             error_msg = f"Erreur d'analyse: {str(e)}"
             self.app.after(0, lambda: self._display_loaded_error(error_msg))
-            import traceback
             traceback.print_exc()
 
     def _display_loaded_results(self, capture_data):

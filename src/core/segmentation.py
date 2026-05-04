@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 import traceback
 from cellpose import utils
-import matplotlib.pyplot as plt
 
 # Vérifier disponibilité de skimage
 try:
@@ -55,7 +54,7 @@ def mask_overlay(img, masks, colors=None):
     RGB = (utils.hsv_to_rgb(HSV) * 255).astype(np.uint8)
     return RGB
 
-def segment_and_analyze(image, scale_mm_per_pixel=0.1, min_area_px=10, min_axis_px=1.0,
+def segment_and_analyze(image, scale_mm_per_pixel=1.0, min_area_px=10, min_axis_px=1.0,
                        use_undistortion=False, mtx=None, dist=None,
                        use_homography=False, homo_matrix=None):
     print("\n=== DÉBUT SEGMENTATION ===")
@@ -170,68 +169,4 @@ def segment_and_analyze(image, scale_mm_per_pixel=0.1, min_area_px=10, min_axis_
         print(f"[ERREUR CRITIQUE] {e}")
         traceback.print_exc()
         return None, None, [], None, [], []
-
-def create_ellipse_visualization(rgb_img, masks, scale_mm_per_pixel=0.1):
-    """Crée une visualisation avec les ellipses des particules"""
-    if not SKIMAGE_AVAILABLE:
-        return None, [], []
-    
-    try:
-        import math
-        import matplotlib.pyplot as plt
-        from matplotlib.patches import Ellipse
-        
-        label_img = label(masks)
-        regions = regionprops(label_img)
-        
-        fig, ax = plt.subplots(figsize=(10, 8))
-        ax.imshow(rgb_img, cmap=plt.cm.gray)
-        
-        L_min_axis = []
-        L_max_axis = []
-        
-        for props in regions:
-            # Stocker les dimensions
-            L_min_axis.append(props.axis_minor_length)
-            L_max_axis.append(props.axis_major_length)
-            
-            # Centroid et orientation
-            y0, x0 = props.centroid
-            orientation = props.orientation
-            
-            # Dessiner l'ellipse
-            ellipse_patch = Ellipse(
-                (x0, y0),
-                width=props.axis_major_length,
-                height=props.axis_minor_length,
-                angle=90 - np.degrees(orientation),
-                edgecolor='blue',
-                facecolor='none',
-                linewidth=0.75,
-                alpha=0.7
-            )
-            ax.add_patch(ellipse_patch)
-            
-            # Marquer le centre
-            ax.plot(x0, y0, '.r', markersize=2)
-        
-        ax.set_title(f"Ellipses des particules ({len(regions)} particules)")
-        ax.axis('off')
-        
-        # Sauvegarder dans un buffer
-        from io import BytesIO
-        buf = BytesIO()
-        plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
-        buf.seek(0)
-        plt.close(fig)
-        
-        # Convertir en image OpenCV
-        from PIL import Image
-        pil_img = Image.open(buf)
-        cv2_img = cv2.cvtColor(np.array(pil_img), cv2.COLOR_RGB2BGR)
-        
-        return cv2_img, L_min_axis, L_max_axis
-        
-    except Exception as e:
-        print(f"[ERREUR visualisation ellipses] {e}")
-        return None, [], []
+

@@ -79,23 +79,22 @@ class CapturePipeline:
                     self.app.dist, self.app.mtx, processed_frame
                 )
 
-            scale = float(self.app.scale_var.get()) if self.app.scale_var.get() else 0.1
+            # Coefficient de conversion pixel→mm, synchronisé avec l'onglet Paramètres
+            facteur = float(self.app.facteur_conversion.get().replace(",", "."))
+            print(f"[INFO] Facteur de conversion appliqué : {facteur} mm/px")
 
+            # Segmentation : on passe facteur pour que particles_data ait les bonnes valeurs en mm
             masks, segmented_img, particles_data, _, L_min_axis, L_max_axis = \
-                segment_and_analyze(processed_frame, scale)
+                segment_and_analyze(processed_frame, facteur)
 
-            L_min_axis = [
-                elt * float(self.app.facteur_conversion.get())
-                for elt in L_min_axis
-            ]
-
+            # L_min_axis est en pixels bruts — conversion pixels→mm effectuée une seule fois ci-dessous
             tamis_exp, cumulative_raw, cumulative_corrected, minor_axes_mm = \
                 calculate_granulometric_curve_with_dna(
                     particles_data,
                     L_min_axis,
                     self.app.correction_granulo["scale"].get(),
                     self.app.correction_granulo["offset"].get(),
-                    scale
+                    facteur
                 )
 
             self.particles_table_data = [
@@ -114,14 +113,14 @@ class CapturePipeline:
                 "particles_data":       particles_data,
                 "L_min_axis":           L_min_axis,
                 "L_max_axis":           L_max_axis,
-                "L_min_axis_mm":        (np.array(L_min_axis) * scale).tolist() if L_min_axis else [],
-                "L_max_axis_mm":        (np.array(L_max_axis) * scale).tolist() if L_max_axis else [],
+                "L_min_axis_mm":        (np.array(L_min_axis) * facteur).tolist() if L_min_axis else [],
+                "L_max_axis_mm":        (np.array(L_max_axis) * facteur).tolist() if L_max_axis else [],
                 "tamis_exp":            tamis_exp,
                 "cumulative_raw":       cumulative_raw,
                 "cumulative_corrected": cumulative_corrected,
                 "minor_axes_mm":        minor_axes_mm,
                 "particles_count":      len(particles_data),
-                "scale":                scale,
+                "scale":                facteur,
             }
 
             self.capture_queue.put(("results", capture_data))

@@ -19,7 +19,8 @@ COLOR_STAT_BAD = "#ef4444"
 from PIL import Image, ImageTk
 
 # Racine du projet
-proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+from src.utils.file_manager import get_project_root
+proj_root = get_project_root()
 # On cherche le logo dans assets
 LOGO_PATH = os.path.join(proj_root, "assets", "logo.png")
 if not os.path.exists(LOGO_PATH):
