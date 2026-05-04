@@ -173,15 +173,32 @@ def load_correction_parameters():
     
     # Valeurs par défaut
     params = {"scale": 1.0, "offset": 0.0}
+    # 1. Tentative depuis le fichier central JSON
     if os.path.exists(settings_file):
         try:
             with open(settings_file, "r", encoding="utf-8") as f:
                 params.update(json.load(f))
         except Exception as e:
             messagebox.showwarning("Chargement Paramètres", f"Erreur lors du chargement des paramètres de correction.\n\nDétails : {e}")     
-    # Tentative de migration depuis l'ancien format .txt si le JSON n'existe pas ou est incomplet
+    
+    # 2. Surcharge avec les paramètres de la "petite app" si présents (mesure/params_correction.txt)
+    # Ce fichier est considéré comme prioritaire si l'utilisateur vient de l'utiliser.
+    small_app_file = os.path.join(get_project_root(), "mesure", "params_correction.txt")
+    if os.path.exists(small_app_file):
+        try:
+            with open(small_app_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    if "=" in line:
+                        k, v = line.split("=")
+                        params[k.strip().lower()] = float(v.strip())
+            # On met à jour le JSON central pour rester synchronisé
+            save_correction_parameters(params['scale'], params['offset'])
+        except Exception:
+            pass
+
+    # 3. Migration depuis l'ancien format .txt (param_correct.txt) si rien d'autre n'existe
     old_file = os.path.join(get_project_root(), "src", "utils", "param_correct.txt")
-    if not os.path.exists(settings_file) and os.path.exists(old_file):
+    if not os.path.exists(settings_file) and not os.path.exists(small_app_file) and os.path.exists(old_file):
         try:
             with open(old_file, "r", encoding="utf-8") as f:
                 for line in f:

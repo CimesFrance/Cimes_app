@@ -41,14 +41,14 @@ def create_analysis_settings(view):
     scale_f.pack(side="left", padx=(0, 20))
     tk.Label(scale_f, text="Scale:", bg=COLOR_CARD_BG,
              font=("Segoe UI", 10)).pack(side="left")
-    tk.Label(scale_f, text="0.823", bg=COLOR_CARD_BG,
+    tk.Label(scale_f, textvariable=view.app.correction_granulo["scale"], bg=COLOR_CARD_BG,
              font=("Segoe UI", 10, "bold"), fg=COLOR_ACCENT).pack(side="left", padx=(5, 0))
 
     offset_f = tk.Frame(params_grid, bg=COLOR_CARD_BG)
     offset_f.pack(side="left")
     tk.Label(offset_f, text="Offset:", bg=COLOR_CARD_BG,
              font=("Segoe UI", 10)).pack(side="left")
-    tk.Label(offset_f, text="8.5", bg=COLOR_CARD_BG,
+    tk.Label(offset_f, textvariable=view.app.correction_granulo["offset"], bg=COLOR_CARD_BG,
              font=("Segoe UI", 10, "bold"), fg=COLOR_ACCENT).pack(side="left", padx=(5, 0))
 
     tk.Label(corr_frame,
