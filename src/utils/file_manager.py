@@ -212,7 +212,9 @@ def load_conversion_param():
         try:
             with open(settings_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                valeur = data.get("facteur_conversion", 1.34)
+                valeur = data.get("facteur_conversion")
+                if valeur is None:
+                    valeur = data.get("scale", 1.34)
         except Exception as e:
             messagebox.showwarning("Chargement Calibration", f"Erreur lors du chargement du facteur de conversion.\n\nDétails : {e}")   
     # Migration depuis l'ancien format .txt
@@ -232,7 +234,10 @@ def load_conversion_param():
 def save_conversion_parameter(param):
     """Sauvegarde le facteur de conversion mm/pixel en format JSON"""
     settings_file = os.path.join(get_settings_dir(), "calibration_settings.json")
-    data = {"facteur_conversion": param}
+    data = {
+        "facteur_conversion": param,
+        "scale": str(param)
+    }
     try:
         with open(settings_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)

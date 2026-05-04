@@ -17,12 +17,16 @@ def load_sensor_settings(app):
             with open(settings_file, 'r', encoding='utf-8') as f:
                 settings = json.load(f)
         
-            file_scale = settings.get("scale", "1.34")
+            # Rechercher la valeur dans "scale" ou "facteur_conversion"
+            file_scale = settings.get("scale")
+            if file_scale is None:
+                file_scale = settings.get("facteur_conversion", "1.34")
+            
             if isinstance(file_scale, str) and ("B" in file_scale or file_scale == "1,728B"):
                 file_scale = "1.34"
         
             # Mettre à jour la variable d'échelle unique
-            app.facteur_conversion.set(file_scale)
+            app.facteur_conversion.set(str(file_scale))
         
             # Charger les autres paramètres
             app.url_var.set(settings.get("url", app.url_var.get()))
@@ -101,6 +105,7 @@ def save_configuration(app, config_type="all"):
                 },
                 "capture_mode": app.capture_mode_var.get(),
                 "scale": app.facteur_conversion.get(),
+                "facteur_conversion": app.facteur_conversion.get(),
                 "dna_correction_enabled": app.show_corrected_curve_var.get()
             }
             
@@ -128,6 +133,7 @@ def save_configuration(app, config_type="all"):
             # Sauvegarder les paramètres de calibration
             calibration_settings = {
                 "scale": app.facteur_conversion.get(),
+                "facteur_conversion": app.facteur_conversion.get(),
                 "use_undistortion": app.use_undistortion_var.get(),
                 "use_homography": app.use_homography_var.get(),
                 "calibration_files_loaded": {
@@ -158,11 +164,14 @@ def load_calibration_settings(app):
                 settings = json.load(f)
             
             # Appliquer les paramètres de calibration
-            scale = settings.get("scale", "1.34")
+            scale = settings.get("scale")
+            if scale is None:
+                scale = settings.get("facteur_conversion", "1.34")
+                
             if isinstance(scale, str) and ("B" in scale or scale == "1,728B"):
                 scale = "1.34"
             
-            app.facteur_conversion.set(scale)
+            app.facteur_conversion.set(str(scale))
             app.use_undistortion_var.set(settings.get("use_undistortion", False))
             app.use_homography_var.set(settings.get("use_homography", False))
             
