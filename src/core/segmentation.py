@@ -60,113 +60,105 @@ def segment_and_analyze(image, scale_mm_per_pixel=1.0, min_area_px=10, min_axis_
     print("\n=== DÉBUT SEGMENTATION ===")
 
     if image is None:
-        print("[ERREUR] Image None")
-        return None, None, [], None, [], []
+        raise ValueError("L'image fournie pour la segmentation est nulle (None).")
 
     if len(image.shape) != 3 or image.shape[2] != 3:
-        print("[ERREUR] Image invalide")
-        return None, None, [], None, [], []
+        raise ValueError(f"Format d'image invalide pour la segmentation : {image.shape}")
 
     if not CELLPOSE_AVAILABLE:
-        print("[ERREUR] Cellpose non installé")
-        return None, None, [], None, [], []
+        raise ImportError("Le module Cellpose n'est pas installé ou n'a pas pu être chargé. "
+                        "Veuillez vérifier l'installation des dépendances.")
 
-    try:
-        # Appliquer les corrections si demandées
-        processed_image = image.copy()
-        
-        if use_undistortion and mtx is not None and dist is not None:
-            processed_image = undistort_img(dist, mtx, processed_image)
-        
-        if use_homography and homo_matrix is not None:
-            processed_image = homo_and_pixel_conversion(processed_image, homo_matrix)
-        
-        # Suite du traitement
-        rgb_img = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
-        print("[OK] Image convertie en RGB")
+    # Appliquer les corrections si demandées
+    processed_image = image.copy()
+    
+    if use_undistortion and mtx is not None and dist is not None:
+        processed_image = undistort_img(dist, mtx, processed_image)
+    
+    if use_homography and homo_matrix is not None:
+        processed_image = homo_and_pixel_conversion(processed_image, homo_matrix)
+    
+    # Suite du traitement
+    rgb_img = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
+    print("[OK] Image convertie en RGB")
 
-        print("Chargement modèle Cellpose GPU…")
-        model = models.CellposeModel(gpu=True)
-        print("[OK] Modèle chargé")
+    print("Chargement modèle Cellpose GPU…")
+    model = models.CellposeModel(gpu=True)
+    print("[OK] Modèle chargé")
 
-        # Appel Cellpose avec paramètres ajustés
-        masks, flows, styles = model.eval(
-            rgb_img,
-            diameter=80,
-            channels=[0, 0],
-            flow_threshold=0.4,
-            cellprob_threshold=0.0
-        )
-        print("[OK] Segmentation faite")
+    # Appel Cellpose avec paramètres ajustés
+    masks, flows, styles = model.eval(
+        rgb_img,
+        diameter=80,
+        channels=[0, 0],
+        flow_threshold=0.4,
+        cellprob_threshold=0.0
+    )
+    print("[OK] Segmentation faite")
 
-        unique_masks = np.unique(masks)
-        num_particles = len(unique_masks) - 1
-        print(f"[OK] Particules détectées par Cellpose : {num_particles}")
-        img_seg = mask_overlay(rgb_img, masks, colors=None)
-        # cv2.imwrite(r"C:\Users\loic.ngassa\Downloads\img_seg.png", img_seg)
-        overlay = rgb_img.copy()
+    unique_masks = np.unique(masks)
+    num_particles = len(unique_masks) - 1
+    print(f"[OK] Particules détectées par Cellpose : {num_particles}")
+    img_seg = mask_overlay(rgb_img, masks, colors=None)
+    # cv2.imwrite(r"C:\Users\loic.ngassa\Downloads\img_seg.png", img_seg)
+    overlay = rgb_img.copy()
 
-        if num_particles > 0:
-            for mask_id in unique_masks[1:]:
-                mask = masks == mask_id
-                color = np.random.randint(0, 255, 3)
-                overlay[mask] = color
-        overlay_bgr = cv2.cvtColor(mask_overlay(rgb_img,masks), cv2.COLOR_RGB2BGR)
-        # overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
+    if num_particles > 0:
+        for mask_id in unique_masks[1:]:
+            mask = masks == mask_id
+            color = np.random.randint(0, 255, 3)
+            overlay[mask] = color
+    overlay_bgr = cv2.cvtColor(mask_overlay(rgb_img,masks), cv2.COLOR_RGB2BGR)
+    # overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
 
-        # Analyse SKIMAGE avec filtrage
-        particles_data = []
-        L_min_axis = []
-        L_max_axis = []
-        if SKIMAGE_AVAILABLE and num_particles > 0:
-            try:
-                label_img = label(masks)
-                regions = regionprops(label_img)
+    # Analyse SKIMAGE avec filtrage
+    particles_data = []
+    L_min_axis = []
+    L_max_axis = []
+    if SKIMAGE_AVAILABLE and num_particles > 0:
+        try:
+            label_img = label(masks)
+            regions = regionprops(label_img)
+            
+            print(f"[INFO] Régions détectées par skimage : {len(regions)}")
+
+            for props in regions:
+                minor = props.axis_minor_length
+                major = props.axis_major_length
                 
-                print(f"[INFO] Régions détectées par skimage : {len(regions)}")
+                # FILTRER les particules trop petites ou invalides
+                if minor < min_axis_px or major < min_axis_px or props.area < min_area_px:
+                    continue
+                
+                # Stocker en pixels
+                L_min_axis.append(minor)
+                L_max_axis.append(major)
+                
+                # Convertir en mm
+                minor_mm = minor * scale_mm_per_pixel
+                major_mm = major * scale_mm_per_pixel
 
-                for props in regions:
-                    minor = props.axis_minor_length
-                    major = props.axis_major_length
-                    
-                    # FILTRER les particules trop petites ou invalides
-                    if minor < min_axis_px or major < min_axis_px or props.area < min_area_px:
-                        continue
-                    
-                    # Stocker en pixels
-                    L_min_axis.append(minor)
-                    L_max_axis.append(major)
-                    
-                    # Convertir en mm
-                    minor_mm = minor * scale_mm_per_pixel
-                    major_mm = major * scale_mm_per_pixel
+                particles_data.append({
+                    "area": props.area,
+                    "minor_axis_px": minor,
+                    "major_axis_px": major,
+                    "minor_axis_mm": minor_mm,
+                    "major_axis_mm": major_mm,
+                    "centroid": props.centroid,
+                    "orientation": props.orientation,
+                    "perimeter": props.perimeter
+                })
 
-                    particles_data.append({
-                        "area": props.area,
-                        "minor_axis_px": minor,
-                        "major_axis_px": major,
-                        "minor_axis_mm": minor_mm,
-                        "major_axis_mm": major_mm,
-                        "centroid": props.centroid,
-                        "orientation": props.orientation,
-                        "perimeter": props.perimeter
-                    })
+            print(f"[OK] Particules valides après filtrage : {len(particles_data)}")
+            if L_min_axis:
+                print(f"[OK] Axe mineur min/max : {np.min(L_min_axis):.1f}/{np.max(L_min_axis):.1f} px")
+                print(f"[OK] Axe majeur min/max : {np.min(L_max_axis):.1f}/{np.max(L_max_axis):.1f} px")
+            else:
+                print("[ATTENTION] Aucune particule valide après filtrage")
 
-                print(f"[OK] Particules valides après filtrage : {len(particles_data)}")
-                if L_min_axis:
-                    print(f"[OK] Axe mineur min/max : {np.min(L_min_axis):.1f}/{np.max(L_min_axis):.1f} px")
-                    print(f"[OK] Axe majeur min/max : {np.min(L_max_axis):.1f}/{np.max(L_max_axis):.1f} px")
-                else:
-                    print("[ATTENTION] Aucune particule valide après filtrage")
+        except Exception as e:
+            raise RuntimeError(f"Erreur lors de l'analyse des particules avec skimage : {e}") from e
 
-            except Exception as e:
-                print(f"[ERREUR analyse skimage] {e}")
-
-        print("=== FIN SEGMENTATION ===")
-        return masks, overlay_bgr, particles_data, flows, L_min_axis, L_max_axis
-
-    except Exception as e:
-        print(f"[ERREUR CRITIQUE] {e}")
-        traceback.print_exc()
-        return None, None, [], None, [], []
+    print("=== FIN SEGMENTATION ===")
+    return masks, overlay_bgr, particles_data, flows, L_min_axis, L_max_axis
 

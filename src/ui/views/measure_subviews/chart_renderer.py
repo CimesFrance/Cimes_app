@@ -51,7 +51,7 @@ class ChartRenderer:
 
         except Exception as e:
             print(f"Erreur affichage: {e}")
-            label.config(image="", text=f"Erreur d'affichage:\n{e}")
+            label.config(image="", text=f"Erreur d'affichage\n({str(e)[:40]}...)")
 
     def _display_granulometric_curve(self, tamis_exp, cumulative_raw, cumulative_corrected=None):
         """Dessine la courbe granulométrique et l'affiche dans self.curve_label."""
@@ -159,4 +159,4 @@ class ChartRenderer:
 
         except Exception as e:
             print(f"Erreur création courbe: {e}")
-            self.curve_label.config(image="", text=f"Erreur création courbe\n{str(e)[:50]}")
+            self.curve_label.config(image="", text=f"Erreur lors du tracé de la courbe\n({str(e)[:50]}...)")

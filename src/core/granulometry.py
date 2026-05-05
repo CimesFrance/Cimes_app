@@ -40,5 +40,4 @@ def calculate_granulometric_curve_with_dna(particles_data, L_min_axis, scale, of
         return tamis_exp.tolist(), cumulative_raw.tolist(), cumulative_corrected, L_min_axis_mm.tolist()
 
     except Exception as e:
-        print(f"[ERREUR calcul granulométrie avec DNA] {e}")
-        return [], [], [], []
+        raise RuntimeError(f"Erreur lors du calcul de la granulométrie : {e}") from e

@@ -135,7 +135,7 @@ def create_calibration_settings(view):
     return frame
 
 
-# ── Fonctions privées ──────────────────────────────────────────────────────────
+# ── Fonctions privées ─────────────────────────────────────────────────────
 
 def _call_measure_app(view):
     if hasattr(view, "calibration_process") and view.calibration_process.poll() is None:
@@ -154,8 +154,11 @@ def _call_measure_app(view):
         try:
             param = load_conversion_param()
             view.app.facteur_conversion.set(str(param))
-        except Exception:
-            pass
+        except Exception as e:
+            messagebox.showwarning(
+                "Mise à jour impossible",
+                f"L'application de calibration s'est fermée, mais le nouveau facteur de conversion n'a pas pu être récupéré.\n\nDétails : {e}"
+            )
 
     threading.Thread(target=wait_and_update, daemon=True).start()
 

@@ -193,8 +193,8 @@ def load_correction_parameters():
                         params[k.strip().lower()] = float(v.strip())
             # On met à jour le JSON central pour rester synchronisé
             save_correction_parameters(params['scale'], params['offset'])
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[LOG] Échec lecture paramètres 'petite app' : {e}")
 
     # 3. Migration depuis l'ancien format .txt (param_correct.txt) si rien d'autre n'existe
     old_file = os.path.join(get_project_root(), "src", "utils", "param_correct.txt")
@@ -207,8 +207,8 @@ def load_correction_parameters():
                         params[k.strip().lower()] = float(v.strip())
             # Sauvegarde immédiate au nouveau format
             save_correction_parameters(params['scale'], params['offset'])
-        except:
-            pass
+        except Exception as e:
+            print(f"[LOG] Échec migration anciens paramètres (.txt) : {e}")
     return params
 
 def save_correction_parameters(scale, offset):
@@ -244,8 +244,8 @@ def load_conversion_param():
                     _, v = line.split("=")
                     valeur = float(v.strip())
             save_conversion_parameter(valeur)
-        except:
-            pass   
+        except Exception as e:
+            print(f"[LOG] Échec migration paramètre conversion (.txt) : {e}")
     return valeur
 
 def save_conversion_parameter(param):

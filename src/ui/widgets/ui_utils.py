@@ -31,12 +31,17 @@ def load_icon(name, size=(24, 24)):
     """Charge et redimensionne une icône depuis le dossier assets."""
     icon_path = os.path.join(proj_root, "assets", name)
     try:
-        img = Image.open(icon_path)
-        img = img.resize(size, Image.Resampling.LANCZOS)
-        return ImageTk.PhotoImage(img)
+        if os.path.exists(icon_path):
+            img = Image.open(icon_path)
+            img = img.resize(size, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        else:
+            raise FileNotFoundError(f"Fichier non trouvé: {icon_path}")
     except Exception as e:
         print(f"Erreur lors du chargement de l'icône {name}: {e}")
-        return None
+        # Retourner un carré de couleur unie comme placeholder
+        placeholder = Image.new("RGBA", size, color=(200, 200, 200, 100))
+        return ImageTk.PhotoImage(placeholder)
 
 def creer_dossier(path):
     os.makedirs(path, exist_ok=True)

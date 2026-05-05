@@ -4,20 +4,11 @@ import numpy as np
 def dna_correct(cumul_actuel, tamis_exp, scale=0.823, offset=8.5):
     """
     Correction DNA de la courbe granulométrique avec transformation linéaire.
-    
-    Args:
-        cumul_actuel: tableau des pourcentages cumulés actuels
-        tamis_exp: tableau des tailles de tamis expérimentales
-        scale: facteur d'échelle (par défaut 0.823)
-        offset: décalage (par défaut 8.5)
-    
-    Returns:
-        cumulative_corrige: tableau des pourcentages cumulés corrigés
     """
+    if len(cumul_actuel) == 0 or len(tamis_exp) == 0:
+        return cumul_actuel
+    
     try:
-        if len(cumul_actuel) == 0 or len(tamis_exp) == 0:
-            return cumul_actuel
-        
         # Convertir en numpy arrays si nécessaire
         cumulative_classes = np.array(cumul_actuel)
         tamis_exp = np.array(tamis_exp)
@@ -30,7 +21,11 @@ def dna_correct(cumul_actuel, tamis_exp, scale=0.823, offset=8.5):
         
         # Calculer les coefficients a et b pour chaque segment
         for i in range(tamis_exp.shape[0]-1):
-            a = (cumulative_classes[i+1] - cumulative_classes[i]) / (tamis_temp[i+1] - tamis_temp[i])
+            denominator = (tamis_temp[i+1] - tamis_temp[i])
+            if denominator == 0:
+                a = 0
+            else:
+                a = (cumulative_classes[i+1] - cumulative_classes[i]) / denominator
             b = cumulative_classes[i] - a * tamis_temp[i]
             a_list.append(a)
             b_list.append(b)
@@ -47,7 +42,7 @@ def dna_correct(cumul_actuel, tamis_exp, scale=0.823, offset=8.5):
             else:
                 if elt_exp > tamis_temp[tamis_temp.shape[0]-1]:
                     cumulative_corrige.append(a_list[-1] * elt_exp + b_list[-1])
-                if elt_exp < tamis_temp[0]:
+                elif elt_exp < tamis_temp[0]:
                     cumulative_corrige.append(a_list[0] * elt_exp + b_list[0])
         
         # Post-traitement pour restreindre les valeurs entre 0 et 100
@@ -63,5 +58,4 @@ def dna_correct(cumul_actuel, tamis_exp, scale=0.823, offset=8.5):
         return cumulative_corrige.tolist()
         
     except Exception as e:
-        print(f"[ERREUR correction DNA] {e}")
-        return cumul_actuel
+        raise RuntimeError(f"Erreur lors de l'application de la correction DNA : {e}") from e

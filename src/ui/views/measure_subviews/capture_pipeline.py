@@ -191,6 +191,14 @@ class CapturePipeline:
 
     def _capture_error(self, error):
         """Affiche une erreur de capture."""
+        from tkinter import messagebox
         self.is_segmenting = False
-        self.segmented_label.config(image="", text=f"Erreur de traitement\n{str(error)[:50]}")
-        self.curve_label.config(image="", text="Erreur de traitement")
+        
+        error_msg = str(error)
+        self.segmented_label.config(image="", text=f"Erreur de traitement\n{error_msg[:60]}...")
+        self.curve_label.config(image="", text="Analyse interrompue")
+        
+        messagebox.showerror(
+            "Erreur d'analyse",
+            f"Une erreur est survenue lors du traitement de la capture :\n\n{error_msg}"
+        )

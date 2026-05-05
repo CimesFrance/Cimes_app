@@ -7,6 +7,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from datetime import datetime
 import warnings
+import os
 warnings.filterwarnings("ignore")
 
 from src.ui.widgets.ui_utils import (
@@ -21,7 +22,7 @@ from src.ui.views.reload_view import ReloadView
 from src.ui.views.param_view import ParamView
 from src.utils.file_manager import (
     load_calibration_files, ensure_results_directory,
-    load_correction_parameters
+    load_correction_parameters, get_project_root
 )
 from src.utils.config_manager import (
     load_sensor_settings, load_report_configuration, load_calibration_settings
@@ -34,10 +35,11 @@ class CimesApp(CameraController, tk.Tk):
         self.geometry("1600x1000")
         self.minsize(1400, 800)
         self.configure(bg=COLOR_FRAME_BG)
-        self.title("CIMES - Analyse granulométrique")
+        self.title("- Analyse granulométrique")
 
         configure_styles(self)
         initialize_variables(self)
+        self._last_correction_mtime = 0
         self._initialize_views()
         self._setup_initial_configuration()
         self._start_auto_updates()
@@ -50,14 +52,14 @@ class CimesApp(CameraController, tk.Tk):
         if hasattr(self, "correction_process") and self.correction_process.poll() is None:
             try:
                 self.correction_process.terminate()
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[LOG] Échec terminaison correction_process : {e}")
         if hasattr(self, "param_view") and hasattr(self.param_view, "calibration_process"):
             if self.param_view.calibration_process.poll() is None:
                 try:
                     self.param_view.calibration_process.terminate()
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f"[LOG] Échec terminaison calibration_process : {e}")
         self.destroy()
 
     # ------------------------------------------------------------------
@@ -220,6 +222,7 @@ class CimesApp(CameraController, tk.Tk):
         self.end_time_var.trace_add("write", lambda *a: self._update_active_params_display())
         self.capture_mode_var.trace_add("write", lambda *a: self._on_capture_mode_changed())
         self.facteur_conversion.trace_add("write", lambda *a: self._on_scale_changed())
+        self._monitor_correction_parameters()
 
     def _update_clock(self):
         self.datetime_var.set(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
@@ -254,3 +257,26 @@ class CimesApp(CameraController, tk.Tk):
                 self.curve_view._update_curve_view()
         except ValueError:
             pass
+
+    def _monitor_correction_parameters(self):
+        """Surveille le fichier de paramètres de correction et met à jour l'app si besoin."""
+        try:
+            param_file = os.path.join(get_project_root(), "mesure", "params_correction.txt")
+            if os.path.exists(param_file):
+                mtime = os.path.getmtime(param_file)
+                if mtime > self._last_correction_mtime:
+                    self._last_correction_mtime = mtime
+                    # Recharger les paramètres
+                    params = load_correction_parameters()
+                    # Mettre à jour les variables tkinter
+                    self.correction_granulo["scale"].set(params["scale"])
+                    self.correction_granulo["offset"].set(params["offset"])
+                    
+                    # Forcer la mise à jour de la vue courbe si elle est active
+                    if hasattr(self, "curve_view") and hasattr(self.curve_view, "frame") and self.curve_view.frame.winfo_ismapped():
+                        self.curve_view._update_curve_view()
+        except Exception as e:
+            print(f"[LOG] Surveillance paramètres correction : {e}")
+            
+        # Re-planifier la surveillance (toutes les 2 secondes)
+        self.after(2000, self._monitor_correction_parameters)

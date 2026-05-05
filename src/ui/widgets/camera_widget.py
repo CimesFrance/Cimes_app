@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import cv2
 import threading
 import time
@@ -10,16 +10,24 @@ class VideoStream:
         self.current_frame = None
         self.running = False
         self.thread = None
+        self.last_error = None
 
     def start(self):
         if self.running:
-            return
+            return True
 
-        self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
-        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.last_error = None
+        try:
+            self.cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
-        if not self.cap.isOpened():
-            print(f"Erreur ouverture flux RTSP : {self.rtsp_url}")
+            if not self.cap.isOpened():
+                self.last_error = f"Impossible d'ouvrir le flux RTSP : {self.rtsp_url}"
+                print(f"[ERREUR] {self.last_error}")
+                return False
+        except Exception as e:
+            self.last_error = f"Erreur lors de la connexion au flux : {e}"
+            print(f"[ERREUR] {self.last_error}")
             return False
 
         self.running = True
@@ -31,11 +39,18 @@ class VideoStream:
 
     def _update(self):
         while self.running:
-            ret, frame = self.cap.read()
-            if ret:
-                self.current_frame = frame
-            else:
-                print("Erreur de lecture de la frame.")
+            try:
+                ret, frame = self.cap.read()
+                if ret:
+                    self.current_frame = frame
+                else:
+                    self.last_error = "Erreur de lecture du flux (frame vide)."
+                    print(f"[ERREUR] {self.last_error}")
+                    self.running = False
+                    break
+            except Exception as e:
+                self.last_error = f"Erreur critique dans le thread de lecture : {e}"
+                print(f"[ERREUR] {self.last_error}")
                 self.running = False
                 break
             time.sleep(0.01)
