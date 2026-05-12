@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Application principale CIMES — coordinateur des vues.
 """
@@ -31,12 +30,17 @@ from src.utils.config_manager import (
 
 class CimesApp(CameraController, tk.Tk):
     def __init__(self):
+        CameraController.__init__(self)
         tk.Tk.__init__(self)
+        self.title("Cimes")
+        icon_path = os.path.join(get_project_root(), "modules", "app_change_corr_params", "assets", "icons", "cimes-logo.ico")
+        try:
+            self.iconbitmap(icon_path, default=icon_path)
+        except Exception:
+            pass
         self.geometry("1600x1000")
         self.minsize(1400, 800)
         self.configure(bg=COLOR_FRAME_BG)
-        self.title("- Analyse granulométrique")
-
         configure_styles(self)
         initialize_variables(self)
         self._last_correction_mtime = 0
@@ -45,11 +49,10 @@ class CimesApp(CameraController, tk.Tk):
         self._start_auto_updates()
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
-    # ------------------------------------------------------------------
     # Fermeture
-    # ------------------------------------------------------------------
     def _on_closing(self):
-        if hasattr(self, "correction_process") and self.correction_process.poll() is None:
+        """ Gère la fermeture de l'application. """
+        if self.correction_process is not None and self.correction_process.poll() is None:
             try:
                 self.correction_process.terminate()
             except Exception as e:
@@ -62,32 +65,28 @@ class CimesApp(CameraController, tk.Tk):
                     print(f"[LOG] Échec terminaison calibration_process : {e}")
         self.destroy()
 
-    # ------------------------------------------------------------------
     # Construction des vues
-    # ------------------------------------------------------------------
     def _initialize_views(self):
+        """ Initialise les vues de l'application. """
         self._create_header()
         self.content_frame = tk.Frame(self, bg=COLOR_FRAME_BG)
         self.content_frame.pack(side="top", fill="both", expand=True)
-
         self.measure_view = MeasureView(self.content_frame, self)
         self.curve_view   = CurveView(self.content_frame, self)
         self.reload_view  = ReloadView(self.content_frame, self)
         self.param_view   = ParamView(self.content_frame, self)
-
         self.show_measure_view()
         self._set_active_nav("measure")
 
     def _create_header(self):
+        """ Crée l'en-tête de l'application. """
         header_height = 90
         header = tk.Frame(self, bg=COLOR_BG_DARK, height=header_height)
         header.pack(side="top", fill="x")
         header.pack_propagate(False)
-
         # Logo section
         logo_container = tk.Frame(header, bg=COLOR_BG_DARK)
         logo_container.pack(side="left", padx=30, fill="y")
-
         try:
             img = Image.open(LOGO_PATH)
             display_height = 70  # Increased from 60
@@ -98,11 +97,9 @@ class CimesApp(CameraController, tk.Tk):
         except Exception:
             tk.Label(logo_container, text="CIMES", bg=COLOR_BG_DARK, fg=COLOR_TEXT_LIGHT,
                      font=("Segoe UI", 18, "bold")).pack(expand=True)
-
         # Navigation section
         self.nav_container = tk.Frame(header, bg=COLOR_BG_DARK)
         self.nav_container.pack(side="right", padx=30, fill="y")
-        
         # This will contain the buttons and the indicator
         nav_buttons_frame = tk.Frame(self.nav_container, bg=COLOR_BG_DARK)
         nav_buttons_frame.pack(side="top", fill="x")
@@ -113,28 +110,23 @@ class CimesApp(CameraController, tk.Tk):
             ("reload",   "Recharger"),
             ("param",    "Paramètres"),
         ]
-        
         self.nav_buttons = {}
         for key, label in nav_items:
             # We use a container for each button to manage the indicator
             btn_box = tk.Frame(nav_buttons_frame, bg=COLOR_BG_DARK)
             btn_box.pack(side="left", padx=5)
-            
             btn = ttk.Button(btn_box, text=label, style="Nav.TButton",
                              command=lambda k=key: self._on_nav_clicked(k))
             btn.pack(side="top", pady=(22, 0))
             self.nav_buttons[key] = btn
-            
             # Sub-indicator line (hidden by default)
             line = tk.Frame(btn_box, bg=COLOR_ACCENT, height=3)
             line.pack(side="top", fill="x", pady=(2, 0))
             line.pack_forget() # Hidden initially
             btn.indicator = line
-            
             # Hover effects
             btn.bind("<Enter>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, True))
             btn.bind("<Leave>", lambda e, b=btn, k=key: self._on_nav_hover(b, k, False))
-
         self.change_corr_btn = ttk.Button(
             nav_buttons_frame, text="Modifier correction",
             style="Nav.TButton",
@@ -143,15 +135,15 @@ class CimesApp(CameraController, tk.Tk):
         self.change_corr_btn.pack(side="left", padx=(15, 0), pady=(22, 0))
 
     def _on_nav_hover(self, btn, key, is_entering):
+        """ Gère l'effet de survol des boutons de navigation. """
         if hasattr(self, "current_view_key") and self.current_view_key == key:
             return
         # Hover effect is handled by style.map mostly, but we can add more here if needed
         pass
 
-    # ------------------------------------------------------------------
     # Navigation
-    # ------------------------------------------------------------------
     def _set_active_nav(self, key):
+        """ Met à jour l'affichage de la navigation. """
         self.current_view_key = key
         for k, btn in self.nav_buttons.items():
             if k == key:
@@ -162,6 +154,7 @@ class CimesApp(CameraController, tk.Tk):
                 btn.indicator.pack_forget()
 
     def _on_nav_clicked(self, key):
+        """ Gère le clic sur un bouton de navigation. """
         if key == "measure":
             self.show_measure_view()
         elif key == "curve":
@@ -175,6 +168,7 @@ class CimesApp(CameraController, tk.Tk):
         self._set_active_nav(key)
 
     def _raise_view(self, view):
+        """ Change l'affichage en fonction de la vue sélectionnée. """
         for v in [self.measure_view, self.curve_view, self.reload_view, self.param_view]:
             if v and hasattr(v, "frame"):
                 v.frame.pack_forget()
@@ -186,10 +180,9 @@ class CimesApp(CameraController, tk.Tk):
     def show_reload_view(self):  self._raise_view(self.reload_view)
     def show_param_view(self):   self._raise_view(self.param_view)
 
-    # ------------------------------------------------------------------
     # Configuration initiale
-    # ------------------------------------------------------------------
     def _setup_initial_configuration(self):
+        """ Met en place la configuration initiale de l'application. """
         self._update_clock()
         self._load_initial_settings()
         self._load_calibration_files_automatically()
@@ -198,21 +191,22 @@ class CimesApp(CameraController, tk.Tk):
         self._update_save_delay_display()
 
     def _load_initial_settings(self):
+        """ Charge les paramètres initiaux de l'application. """
         load_sensor_settings(self)
         load_report_configuration(self)
         load_calibration_settings(self)
 
     def _load_calibration_files_automatically(self):
+        """ Charge les fichiers de calibration automatiquement. """
         self.mtx, self.dist, self.calib_path = load_calibration_files()
         if self.mtx is not None:
             self.use_undistortion_var.set(True)
         if self.homo_matrix is not None:
             self.use_homography_var.set(True)
 
-    # ------------------------------------------------------------------
     # Mises à jour automatiques
-    # ------------------------------------------------------------------
     def _start_auto_updates(self):
+        """ Démarre les mises à jour automatiques. """
         self.after(1000, self._update_clock)
         self.url_var.trace_add("write", lambda *a: self._update_active_params_display())
         self.capture_time_val_var.trace_add("write", lambda *a: self._update_active_params_display())
@@ -225,14 +219,17 @@ class CimesApp(CameraController, tk.Tk):
         self._monitor_correction_parameters()
 
     def _update_clock(self):
+        """ Met à jour l'horloge. """
         self.datetime_var.set(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
         self.after(1000, self._update_clock)
 
     def _update_active_params_display(self):
+        """ Met à jour l'affichage des paramètres actifs. """
         if hasattr(self, "measure_view"):
             self.measure_view.update_active_params_display()
 
     def _update_save_delay_display(self):
+        """ Met à jour l'affichage du délai de capture. """
         mode = self.capture_mode_var.get()
         if mode == "automatique":
             self.save_delay_display_var.set(
@@ -243,11 +240,13 @@ class CimesApp(CameraController, tk.Tk):
         self._update_active_params_display()
 
     def _on_capture_mode_changed(self):
+        """ Met à jour l'affichage des paramètres actifs et les contrôles de capture. """
         self._update_active_params_display()
         if hasattr(self, "param_view"):
             self.param_view._toggle_capture_controls()
 
     def _on_scale_changed(self):
+        """ Met à jour l'échelle de conversion et la courbe si nécessaire. """
         try:
             scale_value = float(self.facteur_conversion.get().replace(",", "."))
             if scale_value <= 0:
@@ -271,12 +270,11 @@ class CimesApp(CameraController, tk.Tk):
                     # Mettre à jour les variables tkinter
                     self.correction_granulo["scale"].set(params["scale"])
                     self.correction_granulo["offset"].set(params["offset"])
-                    
                     # Forcer la mise à jour de la vue courbe si elle est active
                     if hasattr(self, "curve_view") and hasattr(self.curve_view, "frame") and self.curve_view.frame.winfo_ismapped():
                         self.curve_view._update_curve_view()
         except Exception as e:
             print(f"[LOG] Surveillance paramètres correction : {e}")
-            
+        
         # Re-planifier la surveillance (toutes les 2 secondes)
         self.after(2000, self._monitor_correction_parameters)

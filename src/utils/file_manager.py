@@ -1,13 +1,18 @@
+"""
+ Module de gestion des fichiers de l'application CIMES
+s'occupe de sauvegarder et de charger les fichiers de calibration
+"""
+
 import os
 import sys
+from datetime import datetime
 import json
 from tkinter import messagebox
+import zipfile
+from io import StringIO
 import cv2
 import numpy as np
-from datetime import datetime
-import zipfile
 import pandas as pd
-from io import StringIO
 
 def creer_dossier(path):
     """Crée un dossier s'il n'existe pas"""
@@ -15,16 +20,18 @@ def creer_dossier(path):
     return path
 
 def get_project_root():
-    """Renvoie le chemin absolu du projet (compatible PyInstaller)."""
+    """Renvoie le chemin absolu du projet"""
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # pylint: disable=protected-access
         return sys._MEIPASS
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 def save_capture_data(capture_data, results_path, app):
     """Sauvegarde les données d'une capture"""
+    # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     try:
         # Créer le dossier principal avec la date
-        main_date_dir = os.path.join(results_path, 
+        main_date_dir = os.path.join(results_path,
                                     capture_data['timestamp'].strftime("%Y-%m-%d"))
         os.makedirs(main_date_dir, exist_ok=True)
         # Créer un dossier unique pour cette exécution
@@ -35,7 +42,8 @@ def save_capture_data(capture_data, results_path, app):
         # Compter les captures dans cette session
         existing_captures = []
         for item in os.listdir(app.current_session_dir):
-            if os.path.isdir(os.path.join(app.current_session_dir, item)) and item.startswith("capture_"):
+            if os.path.isdir(os.path.join(
+                app.current_session_dir, item)) and item.startswith("capture_"):
                 existing_captures.append(item)
         if existing_captures:
             capture_numbers = [int(c.split("_")[1]) for c in existing_captures]
@@ -45,25 +53,31 @@ def save_capture_data(capture_data, results_path, app):
         # Créer le dossier de capture
         capture_dir = os.path.join(app.current_session_dir, f"capture_{capture_number}")
         os.makedirs(capture_dir, exist_ok=True)
-        # Sauvegarde de courbe 
+        # Sauvegarde de courbe
         if len(app.capture_history) > 0:
-            zip_measure_path = os.path.join(capture_dir, f"mesure.zip")
-            data = [[tamis,cumul] for tamis, cumul in zip(app.capture_history[-1]['tamis_exp'],app.capture_history[-1]['cumulative_corrected'])]
+            zip_measure_path = os.path.join(capture_dir, "mesure.zip")
+            data = [[tamis,cumul] for tamis, cumul in
+            zip(app.capture_history[-1]['tamis_exp'],
+            app.capture_history[-1]['cumulative_corrected'])]
             colonnes = ["Tamis(mm)", "Cumul(%)"]
             df = pd.DataFrame(data, columns=colonnes)
-            # On écrit le CSV dans un buffer en mémoire (pour éviter de créer un .csv qu'on ne va pas utiliser)
+            # On écrit le CSV dans un buffer en mémoire
             buffer_csv = StringIO()
             df.to_csv(buffer_csv, index=False)
-            texte = "Scale = "+str(app.correction_granulo["scale"].get())+"\nOffset = "+str(app.correction_granulo["offset"].get())
+            texte = "Scale = "+str(
+                app.correction_granulo["scale"].get()
+                )+"\nOffset = "+str(app.correction_granulo["offset"].get())
             with zipfile.ZipFile(zip_measure_path, "w", zipfile.ZIP_DEFLATED) as z:
                 z.writestr("data.csv", buffer_csv.getvalue())
                 z.writestr("params_correction.txt", texte)
         # Sauvegarde des fichiers
         if capture_data['image_processed'] is not None:
-            raw_path = os.path.join(capture_dir, f"raw.png")
+            raw_path = os.path.join(capture_dir, "raw.png")
+            # pylint: disable=no-member
             cv2.imwrite(raw_path, capture_data['image_processed'])
         if capture_data['segmented_image'] is not None:
-            seg_path = os.path.join(capture_dir, f"segmented.png")
+            seg_path = os.path.join(capture_dir, "segmented.png")
+            # pylint: disable=no-member
             cv2.imwrite(seg_path, cv2.cvtColor(capture_data['segmented_image'], cv2.COLOR_RGB2BGR))
         # Extraire les données pour les statistiques
         particles_data = capture_data.get('particles_data', [])
@@ -73,24 +87,28 @@ def save_capture_data(capture_data, results_path, app):
             if 'major_axis_mm' in particle:
                 major_axes_mm.append(particle['major_axis_mm'])
         # Calculer les statistiques
-        from src.core.statistics import calculer_statistiques_granulometriques, generer_rapport_statistique
+        # pylint: disable=import-outside-toplevel
+        from src.core.statistics import (
+            calculer_statistiques_granulometriques,
+            generer_rapport_statistique
+        )
         if particles_data and minor_axes_mm:
             stats = calculer_statistiques_granulometriques(
-                particles_data, 
+                particles_data,
                 minor_axes_mm,
                 major_axes_mm
             )
             if stats:
                 # Sauvegarder les statistiques JSON
-                stats_path = os.path.join(capture_dir, f"statistiques.json")
+                stats_path = os.path.join(capture_dir, "statistiques.json")
                 with open(stats_path, 'w', encoding='utf-8') as f:
                     json.dump(stats, f, indent=4, ensure_ascii=False, default=str)
                 # Sauvegarder le rapport texte
-                report_path = os.path.join(capture_dir, f"rapport.txt")
+                report_path = os.path.join(capture_dir, "rapport.txt")
                 with open(report_path, 'w', encoding='utf-8') as f:
                     f.write(generer_rapport_statistique(stats))
         # Sauvegarder les données JSON complètes
-        data_path = os.path.join(capture_dir, f"data.json")
+        data_path = os.path.join(capture_dir, "data.json")
         with open(data_path, 'w', encoding='utf-8') as f:
             json_data = {
                 'id': capture_data['id'],
@@ -114,15 +132,16 @@ def save_capture_data(capture_data, results_path, app):
                 }
             json.dump(json_data, f, indent=4, ensure_ascii=False)
         print(f"[SAUVEGARDE] Capture #{capture_data['id']} sauvegardée dans {capture_dir}")
-    except Exception as e:
-        messagebox.showerror("Erreur Sauvegarde", f"Échec de la sauvegarde des données de capture.\n\nDétails : {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        messagebox.showerror(
+            "Erreur Sauvegarde", 
+            f"Échec de la sauvegarde des données de capture.\n\nDétails : {e}")
 
 def load_calibration_files():
     """Charge les fichiers de calibration automatiquement"""
     print("[CALIBRATION] Recherche des fichiers de calibration...")
     mtx = None
     dist = None
-    homo_matrix = None
     # Chemin du répertoire racine
     root_dir = get_project_root()
     # 1. Charger camera_params.npz
@@ -133,22 +152,13 @@ def load_calibration_files():
             mtx = data['camMatrix']
             dist = data['distCoeff']
             print(f"[CALIBRATION]  camera_params.npz chargé depuis {camera_params_path}")
-        except Exception as e:
-            messagebox.showwarning("Calibration", f"Erreur lors du chargement des paramètres de caméra (Calibration).\n\nDétails : {e}")
+        except (OSError, ValueError) as e:
+            messagebox.showwarning(
+                "Calibration", 
+                "Erreur lors du chargement des paramètres de caméra (Calibration).\n\n"
+                f"Détails : {e}")
     else:
         print(f"[CALIBRATION]  Fichier introuvable: {camera_params_path}")
-    
-    # # 2. Charger homography.npz
-    # homography_path = os.path.join(current_dir, "homography.npz")
-    # if os.path.exists(homography_path):
-    #     try:
-    #         data = np.load(homography_path)
-    #         homo_matrix = data["H"]
-    #         print(f"[CALIBRATION]  homography.npz chargé depuis {homography_path}")
-    #     except Exception as e:
-    #         print(f"[CALIBRATION]  Erreur chargement homography: {e}")
-    # else:
-    #     print(f"[CALIBRATION]  Fichier introuvable: {homography_path}")
     return mtx, dist, camera_params_path
 
 def ensure_results_directory(results_path):
@@ -157,8 +167,10 @@ def ensure_results_directory(results_path):
         os.makedirs(results_path, exist_ok=True)
         print(f"[DIRECTORY] Dossier de résultats prêt: {results_path}")
         return True
-    except Exception as e:
-        messagebox.showerror("Erreur Dossier", f"Impossible de créer le dossier des réglages.\n\nDétails : {e}")
+    except OSError as e:
+        messagebox.showerror(
+            "Erreur Dossier", 
+            f"Impossible de créer le dossier des réglages.\n\nDétails : {e}")
         return False
 
 def get_settings_dir():
@@ -170,7 +182,6 @@ def get_settings_dir():
 def load_correction_parameters():
     """Charge les paramètres de correction depuis le fichier JSON central"""
     settings_file = os.path.join(get_settings_dir(), "correction_settings.json")
-    
     # Valeurs par défaut
     params = {"scale": 1.0, "offset": 0.0}
     # 1. Tentative depuis le fichier central JSON
@@ -178,11 +189,11 @@ def load_correction_parameters():
         try:
             with open(settings_file, "r", encoding="utf-8") as f:
                 params.update(json.load(f))
-        except Exception as e:
-            messagebox.showwarning("Chargement Paramètres", f"Erreur lors du chargement des paramètres de correction.\n\nDétails : {e}")     
-    
-    # 2. Surcharge avec les paramètres de la "petite app" si présents (mesure/params_correction.txt)
-    # Ce fichier est considéré comme prioritaire si l'utilisateur vient de l'utiliser.
+        except (OSError, json.JSONDecodeError) as e:
+            messagebox.showwarning(
+                "Chargement Paramètres", 
+                f"Erreur lors du chargement des paramètres de correction.\n\nDétails : {e}")
+    # 2. Surcharge avec les paramètres de la "petite app" si présents
     small_app_file = os.path.join(get_project_root(), "mesure", "params_correction.txt")
     if os.path.exists(small_app_file):
         try:
@@ -193,12 +204,13 @@ def load_correction_parameters():
                         params[k.strip().lower()] = float(v.strip())
             # On met à jour le JSON central pour rester synchronisé
             save_correction_parameters(params['scale'], params['offset'])
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             print(f"[LOG] Échec lecture paramètres 'petite app' : {e}")
 
-    # 3. Migration depuis l'ancien format .txt (param_correct.txt) si rien d'autre n'existe
+    # 3. Migration depuis l'ancien format .txt si rien d'autre n'existe
     old_file = os.path.join(get_project_root(), "src", "utils", "param_correct.txt")
-    if not os.path.exists(settings_file) and not os.path.exists(small_app_file) and os.path.exists(old_file):
+    has_json = os.path.exists(settings_file) or os.path.exists(small_app_file)
+    if not has_json and os.path.exists(old_file):
         try:
             with open(old_file, "r", encoding="utf-8") as f:
                 for line in f:
@@ -207,7 +219,7 @@ def load_correction_parameters():
                         params[k.strip().lower()] = float(v.strip())
             # Sauvegarde immédiate au nouveau format
             save_correction_parameters(params['scale'], params['offset'])
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             print(f"[LOG] Échec migration anciens paramètres (.txt) : {e}")
     return params
 
@@ -218,8 +230,10 @@ def save_correction_parameters(scale, offset):
     try:
         with open(settings_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-    except Exception as e:
-        messagebox.showerror("Sauvegarde Paramètres", f"Impossible de sauvegarder les paramètres de correction.\n\nDétails : {e}")
+    except OSError as e:
+        messagebox.showerror(
+            "Sauvegarde Paramètres", 
+            f"Impossible de sauvegarder les paramètres de correction.\n\nDétails : {e}")
 
 def load_conversion_param():
     """Charge le facteur de conversion mm/pixel depuis le fichier JSON central"""
@@ -232,8 +246,10 @@ def load_conversion_param():
                 valeur = data.get("facteur_conversion")
                 if valeur is None:
                     valeur = data.get("scale", 1.34)
-        except Exception as e:
-            messagebox.showwarning("Chargement Calibration", f"Erreur lors du chargement du facteur de conversion.\n\nDétails : {e}")   
+        except (OSError, json.JSONDecodeError) as e:
+            messagebox.showwarning(
+                "Chargement Calibration", 
+                f"Erreur lors du chargement du facteur de conversion.\n\nDétails : {e}")
     # Migration depuis l'ancien format .txt
     old_file = os.path.join(get_project_root(), "src", "utils", "param_convers_mm_pixel.txt")
     if not os.path.exists(settings_file) and os.path.exists(old_file):
@@ -244,7 +260,7 @@ def load_conversion_param():
                     _, v = line.split("=")
                     valeur = float(v.strip())
             save_conversion_parameter(valeur)
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             print(f"[LOG] Échec migration paramètre conversion (.txt) : {e}")
     return valeur
 
@@ -258,7 +274,7 @@ def save_conversion_parameter(param):
     try:
         with open(settings_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
-    except Exception as e:
-        messagebox.showerror("Sauvegarde Calibration", f"Impossible de sauvegarder le facteur de conversion.\n\nDétails : {e}")
-        
-        
+    except OSError as e:
+        messagebox.showerror(
+            "Sauvegarde Calibration", 
+            f"Impossible de sauvegarder le facteur de conversion.\n\nDétails : {e}")

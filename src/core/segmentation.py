@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-import cv2
+"""
+Ce module contient les fonctions de segmentation et d'analyse des particules.
+"""
+
 import numpy as np
-import traceback
-from cellpose import utils
 
 # Vérifier disponibilité de skimage
 try:
@@ -13,12 +13,15 @@ except ImportError:
 
 # Vérifier disponibilité de Cellpose
 try:
-    from cellpose import models
+    import torch
+    from cellpose import models, utils
     CELLPOSE_AVAILABLE = True
 except ImportError:
     CELLPOSE_AVAILABLE = False
 
+import cv2
 from src.core.calibration import undistort_img, homo_and_pixel_conversion
+
 
 def mask_overlay(img, masks, colors=None):
     """Overlay masks on image (set image to grayscale).
@@ -40,125 +43,155 @@ def mask_overlay(img, masks, colors=None):
         img = img.astype(np.float32).mean(axis=-1)
     else:
         img = img.astype(np.float32)
-
-    HSV = np.zeros((img.shape[0], img.shape[1], 3), np.float32)
-    HSV[:, :, 2] = np.clip((img / 255. if img.max() > 1 else img) * 1.5, 0, 1)
+    hsv_img = np.zeros((img.shape[0], img.shape[1], 3), np.float32)
+    hsv_img[:, :, 2] = np.clip((img / 255.0 if img.max() > 1 else img) * 1.5, 0, 1)
     hues = np.linspace(0, 1, masks.max() + 1)[np.random.permutation(masks.max())]
     for n in range(int(masks.max())):
         ipix = (masks == n + 1).nonzero()
         if colors is None:
-            HSV[ipix[0], ipix[1], 0] = hues[n]
+            hsv_img[ipix[0], ipix[1], 0] = hues[n]
         else:
-            HSV[ipix[0], ipix[1], 0] = colors[n, 0]
-        HSV[ipix[0], ipix[1], 1] = 1.0
-    RGB = (utils.hsv_to_rgb(HSV) * 255).astype(np.uint8)
-    return RGB
+            hsv_img[ipix[0], ipix[1], 0] = colors[n, 0]
+        hsv_img[ipix[0], ipix[1], 1] = 1.0
+    rgb_img = (utils.hsv_to_rgb(hsv_img) * 255).astype(np.uint8)
+    return rgb_img
 
-def segment_and_analyze(image, scale_mm_per_pixel=1.0, min_area_px=10, min_axis_px=1.0,
-                       use_undistortion=False, mtx=None, dist=None,
-                       use_homography=False, homo_matrix=None):
+
+def segment_and_analyze(
+    image,
+    scale_mm_per_pixel=1.0,
+    min_area_px=10,
+    min_axis_px=1.0,
+    use_undistortion=False,
+    mtx=None,
+    dist=None,
+    use_homography=False,
+    homo_matrix=None,
+):
+    """
+    Segment and analyze particles in an image.
+
+    Args:
+        image (int or float, 2D or 3D array): Image of size [Ly x Lx (x nchan)].
+        scale_mm_per_pixel (float, optional): Scale in mm per pixel. Defaults to 1.0.
+        min_area_px (int, optional): Minimum area in pixels. Defaults to 10.
+        min_axis_px (int, optional): Minimum axis in pixels. Defaults to 1.0.
+        use_undistortion (bool, optional): Whether to use undistortion. Defaults to False.
+        mtx (int or float, 2D array, optional): Camera matrix. Defaults to None.
+        dist (int or float, 1D array, optional): Distortion coefficients. Defaults to None.
+        use_homography (bool, optional): Whether to use homography. Defaults to False.
+        homo_matrix (int or float, 3x3 array, optional): Homography matrix. Defaults to None.
+    
+    Returns:
+        tuple: (masks, overlay_bgr, particles_data, flows, l_min_axis, l_max_axis)
+            - masks (int, 2D array): Masks where 0=NO masks; 1,2,...=mask labels.
+            - overlay_bgr (uint8, 3D array): Array of masks overlaid on grayscale image.
+            - particles_data (list): List of particle data.
+            - flows (int or float, 3D array): Flows.
+            - l_min_axis (int or float, 1D array): Minimum axes.
+            - l_max_axis (int or float, 1D array): Maximum axes.
+    """
+    # pylint: disable=no-member, too-many-arguments, too-many-positional-arguments
+    # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     print("\n=== DÉBUT SEGMENTATION ===")
-
     if image is None:
         raise ValueError("L'image fournie pour la segmentation est nulle (None).")
-
     if len(image.shape) != 3 or image.shape[2] != 3:
-        raise ValueError(f"Format d'image invalide pour la segmentation : {image.shape}")
-
+        raise ValueError(
+            f"Format d'image invalide pour la segmentation : {image.shape}"
+        )
     if not CELLPOSE_AVAILABLE:
-        raise ImportError("Le module Cellpose n'est pas installé ou n'a pas pu être chargé. "
-                        "Veuillez vérifier l'installation des dépendances.")
-
+        raise ImportError(
+            "Le module Cellpose n'est pas installé ou n'a pas pu être chargé. "
+            "Veuillez vérifier l'installation des dépendances."
+        )
     # Appliquer les corrections si demandées
     processed_image = image.copy()
-    
     if use_undistortion and mtx is not None and dist is not None:
         processed_image = undistort_img(dist, mtx, processed_image)
-    
     if use_homography and homo_matrix is not None:
         processed_image = homo_and_pixel_conversion(processed_image, homo_matrix)
-    
     # Suite du traitement
     rgb_img = cv2.cvtColor(processed_image, cv2.COLOR_BGR2RGB)
     print("[OK] Image convertie en RGB")
-
-    print("Chargement modèle Cellpose GPU…")
-    model = models.CellposeModel(gpu=True)
+    
+    use_gpu = torch.cuda.is_available()
+    print(f"Chargement modèle Cellpose (GPU={use_gpu})…")
+    model = models.CellposeModel(gpu=use_gpu)
     print("[OK] Modèle chargé")
-
     # Appel Cellpose avec paramètres ajustés
-    masks, flows, styles = model.eval(
+    masks, flows, _ = model.eval(
         rgb_img,
         diameter=80,
         channels=[0, 0],
         flow_threshold=0.4,
-        cellprob_threshold=0.0
+        cellprob_threshold=0.0,
     )
     print("[OK] Segmentation faite")
-
     unique_masks = np.unique(masks)
     num_particles = len(unique_masks) - 1
     print(f"[OK] Particules détectées par Cellpose : {num_particles}")
-    img_seg = mask_overlay(rgb_img, masks, colors=None)
     # cv2.imwrite(r"C:\Users\loic.ngassa\Downloads\img_seg.png", img_seg)
     overlay = rgb_img.copy()
-
     if num_particles > 0:
         for mask_id in unique_masks[1:]:
             mask = masks == mask_id
             color = np.random.randint(0, 255, 3)
             overlay[mask] = color
-    overlay_bgr = cv2.cvtColor(mask_overlay(rgb_img,masks), cv2.COLOR_RGB2BGR)
+    overlay_bgr = cv2.cvtColor(mask_overlay(rgb_img, masks), cv2.COLOR_RGB2BGR)
     # overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
-
     # Analyse SKIMAGE avec filtrage
     particles_data = []
-    L_min_axis = []
-    L_max_axis = []
+    l_min_axis = []
+    l_max_axis = []
     if SKIMAGE_AVAILABLE and num_particles > 0:
         try:
             label_img = label(masks)
             regions = regionprops(label_img)
-            
             print(f"[INFO] Régions détectées par skimage : {len(regions)}")
-
             for props in regions:
                 minor = props.axis_minor_length
                 major = props.axis_major_length
-                
                 # FILTRER les particules trop petites ou invalides
-                if minor < min_axis_px or major < min_axis_px or props.area < min_area_px:
+                if (
+                    minor < min_axis_px
+                    or major < min_axis_px
+                    or props.area < min_area_px
+                ):
                     continue
-                
                 # Stocker en pixels
-                L_min_axis.append(minor)
-                L_max_axis.append(major)
-                
+                l_min_axis.append(minor)
+                l_max_axis.append(major)
                 # Convertir en mm
                 minor_mm = minor * scale_mm_per_pixel
                 major_mm = major * scale_mm_per_pixel
-
-                particles_data.append({
-                    "area": props.area,
-                    "minor_axis_px": minor,
-                    "major_axis_px": major,
-                    "minor_axis_mm": minor_mm,
-                    "major_axis_mm": major_mm,
-                    "centroid": props.centroid,
-                    "orientation": props.orientation,
-                    "perimeter": props.perimeter
-                })
-
+                particles_data.append(
+                    {
+                        "area": props.area,
+                        "minor_axis_px": minor,
+                        "major_axis_px": major,
+                        "minor_axis_mm": minor_mm,
+                        "major_axis_mm": major_mm,
+                        "centroid": props.centroid,
+                        "orientation": props.orientation,
+                        "perimeter": props.perimeter,
+                    }
+                )
             print(f"[OK] Particules valides après filtrage : {len(particles_data)}")
-            if L_min_axis:
-                print(f"[OK] Axe mineur min/max : {np.min(L_min_axis):.1f}/{np.max(L_min_axis):.1f} px")
-                print(f"[OK] Axe majeur min/max : {np.min(L_max_axis):.1f}/{np.max(L_max_axis):.1f} px")
+            if l_min_axis:
+                print(
+                    f"[OK] Axe mineur min/max : "
+                    f"{np.min(l_min_axis):.1f}/{np.max(l_min_axis):.1f} px"
+                )
+                print(
+                    f"[OK] Axe majeur min/max : "
+                    f"{np.min(l_max_axis):.1f}/{np.max(l_max_axis):.1f} px"
+                )
             else:
                 print("[ATTENTION] Aucune particule valide après filtrage")
-
         except Exception as e:
-            raise RuntimeError(f"Erreur lors de l'analyse des particules avec skimage : {e}") from e
-
+            raise RuntimeError(
+                f"Erreur lors de l'analyse des particules avec skimage : {e}"
+            ) from e
     print("=== FIN SEGMENTATION ===")
-    return masks, overlay_bgr, particles_data, flows, L_min_axis, L_max_axis
-
+    return masks, overlay_bgr, particles_data, flows, l_min_axis, l_max_axis
