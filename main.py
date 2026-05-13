@@ -6,21 +6,40 @@ import sys
 import os
 import warnings
 
-#Gestion du dossier des DLL de torch dans l'exécutable
+# Redirection des logs vers un fichier pour le débogage de l'exécutable
+if getattr(sys, 'frozen', False):
+    log_path = os.path.join(os.path.dirname(sys.executable), "debug_log.txt")
+    try:
+        sys.stdout = open(log_path, 'w', encoding='utf-8')
+        sys.stderr = sys.stdout
+    except Exception:
+        pass
+    print(f"=== Démarrage de l'application (Frozen mode) ===")
+    print(f"Executable: {sys.executable}")
+    print(f"MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}")
+
+# Gestion du dossier des DLL de torch dans l'exécutable
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    # Ajout du dossier des DLLs de torch au chemin de recherche
-    torch_dll_path = os.path.join(sys._MEIPASS, "_internal", "torch", "lib")
-    if os.path.exists(torch_dll_path):
-        if hasattr(os, "add_dll_directory"):
-            os.add_dll_directory(torch_dll_path)
-        else:
-            os.environ["PATH"] = torch_dll_path + os.pathsep + os.environ["PATH"]
+    # Chemins possibles pour les DLLs de torch (dépend de onedir vs onefile)
+    torch_dll_paths = [
+        os.path.join(sys._MEIPASS, "_internal", "torch", "lib"),
+        os.path.join(sys._MEIPASS, "torch", "lib")
+    ]
+    for torch_dll_path in torch_dll_paths:
+        if os.path.exists(torch_dll_path):
+            print(f"Ajout du dossier DLL torch: {torch_dll_path}")
+            if hasattr(os, "add_dll_directory"):
+                os.add_dll_directory(torch_dll_path)
+            else:
+                os.environ["PATH"] = torch_dll_path + os.pathsep + os.environ["PATH"]
     
     # Import anticipé de torch pour stabiliser le chargement des DLLs
     try:
         import torch
-    except ImportError:
-        pass
+        print(f"Torch chargé avec succès (version {torch.__version__})")
+        print(f"CUDA disponible: {torch.cuda.is_available()}")
+    except Exception as e:
+        print(f"Erreur lors du pré-chargement de torch: {e}")
 
 from src.ui.main_app import CimesApp
 

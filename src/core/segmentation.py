@@ -116,18 +116,37 @@ def segment_and_analyze(
     print("[OK] Image convertie en RGB")
     
     use_gpu = torch.cuda.is_available()
-    print(f"Chargement modèle Cellpose (GPU={use_gpu})…")
-    model = models.CellposeModel(gpu=use_gpu)
-    print("[OK] Modèle chargé")
+    print(f"[DEBUG] Torch version: {torch.__version__}")
+    print(f"[DEBUG] CUDA available: {use_gpu}")
+    if use_gpu:
+        print(f"[DEBUG] CUDA device: {torch.cuda.get_device_name(0)}")
+    
+    print(f"Chargement modèle Cellpose (model_type='cyto', GPU={use_gpu})…")
+    try:
+        # Utilisation de cyto2 qui est plus performant et robuste
+        model = models.Cellpose(gpu=use_gpu, model_type='cyto2')
+        print("[OK] Modèle chargé")
+    except Exception as e:
+        print(f"[ERREUR] Échec du chargement du modèle: {e}")
+        raise
+
     # Appel Cellpose avec paramètres ajustés
-    masks, flows, _ = model.eval(
-        rgb_img,
-        diameter=80,
-        channels=[0, 0],
-        flow_threshold=0.4,
-        cellprob_threshold=0.0,
-    )
-    print("[OK] Segmentation faite")
+    print(f"[DEBUG] Lancement de model.eval sur image de taille {rgb_img.shape}")
+    try:
+        # model.eval de Cellpose (wrapper)
+        masks, flows, styles, diams = model.eval(
+            rgb_img,
+            diameter=None, # None permet à Cellpose d'estimer la taille automatiquement
+            channels=[0, 0],
+            flow_threshold=0.4,
+            cellprob_threshold=0.0,
+            resample=True # Améliore la qualité des contours
+        )
+        print("[OK] Segmentation faite")
+    except Exception as e:
+        print(f"[ERREUR] Échec de model.eval: {e}")
+        raise
+
     unique_masks = np.unique(masks)
     num_particles = len(unique_masks) - 1
     print(f"[OK] Particules détectées par Cellpose : {num_particles}")
