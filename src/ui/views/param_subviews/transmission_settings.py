@@ -54,7 +54,7 @@ def create_transmission_settings(view):
     view.time_transmission_frame.pack(fill="x", pady=(0, 15))
     tk.Label(
         view.time_transmission_frame,
-        text="Heure d'envoi (fin de journée) :",
+        text="Heure d'envoi:",
         bg=COLOR_CARD_BG,
         anchor="w",
         font=("Segoe UI", 10, "bold"),
@@ -74,14 +74,15 @@ def create_transmission_settings(view):
         font=("Segoe UI", 9, "italic"),
     ).pack(side="left", padx=(10, 0))
     # Email
-    tk.Label(
+    view.email_label = tk.Label(
         view.transmission_params_frame,
-        text="Adresse Email pour transmission",
+        text="Email du destinataire:",
         bg=COLOR_CARD_BG,
         fg="#111827",
         anchor="w",
         font=("Segoe UI", 10, "bold"),
-    ).pack(fill="x", pady=(10, 5))
+    )
+    view.email_label.pack(fill="x", pady=(10, 5))
     ttk.Entry(
         view.transmission_params_frame,
         textvariable=view.app.transmission_email_var,
@@ -114,29 +115,29 @@ def create_transmission_settings(view):
     col1.pack(side="left", fill="both", expand=True)
     ttk.Checkbutton(
         col1,
-        text="✓ Image capturée",
+        text="Image capturée",
         variable=view.app.report_options["include_captured_image"],
     ).pack(anchor="w", pady=2)
     ttk.Checkbutton(
         col1,
-        text="✓ Image segmentée",
+        text="Image segmentée",
         variable=view.app.report_options["include_segmented_image"],
     ).pack(anchor="w", pady=2)
     ttk.Checkbutton(
         col1,
-        text="✓ Courbe granulométrique",
+        text="Courbe granulométrique",
         variable=view.app.report_options["include_granulometric_curve"],
     ).pack(anchor="w", pady=2)
     col2 = tk.Frame(options_grid, bg=COLOR_CARD_BG)
     col2.pack(side="left", fill="both", expand=True, padx=(20, 0))
     ttk.Checkbutton(
         col2,
-        text="✓ Courbe de distribution",
+        text="Courbe de distribution",
         variable=view.app.report_options["include_distribution_curve"],
     ).pack(anchor="w", pady=2)
     ttk.Checkbutton(
         col2,
-        text="✓ Tableau statistique",
+        text="Tableau statistique",
         variable=view.app.report_options["include_statistics"],
     ).pack(anchor="w", pady=2)
     # Zone commentaire
@@ -178,13 +179,15 @@ def create_transmission_settings(view):
     view.app.transmission_mode_var.trace_add(
         "write", lambda *a: _update_transmission_mode_display(view)
     )
+    _update_transmission_mode_display(view)
     return frame
 
 
 def _toggle_transmission_settings(view):
     """Active/désactive les paramètres de transmission."""
     state = "normal" if view.app.transmission_enabled_var.get() else "disabled"
-    for widget in view.transmission_params_frame.winfo_children():
+    
+    def set_state(widget):
         if isinstance(
             widget,
             (
@@ -194,16 +197,23 @@ def _toggle_transmission_settings(view):
                 ttk.Spinbox,
                 ttk.Radiobutton,
                 ttk.Checkbutton,
+                tk.Text,
+                ttk.Button,
             ),
         ):
             widget.configure(state=state)
+        for child in widget.winfo_children():
+            set_state(child)
+
+    for widget in view.transmission_params_frame.winfo_children():
+        set_state(widget)
 
 
 def _update_transmission_mode_display(view):
     """Met à jour l'affichage du mode de transmission."""
     mode = view.app.transmission_mode_var.get()
     if mode == "daily":
-        view.time_transmission_frame.pack(fill="x", pady=(0, 15))
+        view.time_transmission_frame.pack(before=view.email_label, fill="x", pady=(0, 15))
     else:
         view.time_transmission_frame.pack_forget()
 

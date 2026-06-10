@@ -126,7 +126,7 @@ class ParamView:
         """Active/désactive les contrôles selon le mode de capture."""
         mode = self.app.capture_mode_var.get()
         if mode == "automatique":
-            self.auto_params_frame.pack(fill="x", pady=(0, 20))
+            self.auto_params_frame.pack(before=self.sensor_bottom_separator, fill="x", pady=(0, 20))
             self.manual_params_frame.pack_forget()
             for widget in self.capture_interval_frame.winfo_children():
                 widget.configure(state="normal")
@@ -136,7 +136,7 @@ class ParamView:
                 widget.configure(state="normal")
         else:
             self.auto_params_frame.pack_forget()
-            self.manual_params_frame.pack(fill="x", pady=(0, 20))
+            self.manual_params_frame.pack(before=self.sensor_bottom_separator, fill="x", pady=(0, 20))
             for widget in self.capture_interval_frame.winfo_children():
                 widget.configure(state="disabled")
             for widget in self.time_frame.winfo_children():

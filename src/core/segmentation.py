@@ -121,9 +121,9 @@ def segment_and_analyze(
     if use_gpu:
         print(f"[DEBUG] CUDA device: {torch.cuda.get_device_name(0)}")
     
-    print(f"Chargement modèle Cellpose (model_type='cyto', GPU={use_gpu})…")
+    print(f"Chargement modèle Cellpose (model_type='cyto2', GPU={use_gpu})…")
     try:
-        # Utilisation de cyto2 qui est plus performant et robuste
+        # Utilisation de cyto2
         model = models.Cellpose(gpu=use_gpu, model_type='cyto2')
         print("[OK] Modèle chargé")
     except Exception as e:

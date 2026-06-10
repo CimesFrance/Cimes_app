@@ -187,7 +187,8 @@ def create_sensor_settings(view):
         font=("Segoe UI", 9, "italic"),
     ).pack(anchor="w", pady=(0, 0))
     # Bouton de sauvegarde
-    ttk.Separator(inner, orient="horizontal").pack(fill="x", pady=(0, 20))
+    view.sensor_bottom_separator = ttk.Separator(inner, orient="horizontal")
+    view.sensor_bottom_separator.pack(fill="x", pady=(0, 20))
     button_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     button_frame.pack(fill="x", pady=(0, 10))
     ttk.Button(
@@ -197,6 +198,9 @@ def create_sensor_settings(view):
         command=lambda: _save_sensor_settings(view),
     ).pack(side="left")
     view._toggle_capture_controls()  # pylint: disable=protected-access
+    view.app.capture_mode_var.trace_add(
+        "write", lambda *a: view._toggle_capture_controls()
+    )
     return frame
 
 
