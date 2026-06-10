@@ -220,9 +220,19 @@ def _update_transmission_mode_display(view):
 
 def _save_report_configuration(view):
     """Sauvegarde la configuration du rapport."""
+    # Validation de l'email
+    if view.app.transmission_enabled_var.get() and not view.app.transmission_email_var.get().strip():
+        from tkinter import messagebox
+        messagebox.showerror("Erreur", "Veuillez renseigner une adresse e-mail de destination pour la transmission.")
+        return
+        
     comment = view.comment_text.get("1.0", tk.END).strip()
     view.app.report_options["custom_comment"].set(comment)
     report_config = {
+        "transmission_enabled": view.app.transmission_enabled_var.get(),
+        "transmission_mode": view.app.transmission_mode_var.get(),
+        "transmission_time": view.app.transmission_time_var.get(),
+        "transmission_email": view.app.transmission_email_var.get(),
         "include_captured_image": view.app.report_options[
             "include_captured_image"
         ].get(),

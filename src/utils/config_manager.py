@@ -72,6 +72,11 @@ def load_report_configuration(app):
             opts["include_distribution_curve"].set(config.get("include_distribution_curve", True))
             app.report_options["include_statistics"].set(config.get("include_statistics", True))
             app.show_corrected_curve_var.set(config.get("dna_correction_enabled", True))
+            # Paramètres de transmission
+            app.transmission_enabled_var.set(config.get("transmission_enabled", False))
+            app.transmission_mode_var.set(config.get("transmission_mode", "capture"))
+            app.transmission_time_var.set(config.get("transmission_time", "18:00"))
+            app.transmission_email_var.set(config.get("transmission_email", ""))
             # Mettre à jour le commentaire
             if "custom_comment" in config:
                 app.report_options["custom_comment"].set(config.get("custom_comment", ""))
@@ -109,6 +114,10 @@ def save_configuration(app, config_type="all"):
             # Sauvegarder la configuration du rapport
             opts = app.report_options
             report_config = {
+                "transmission_enabled": app.transmission_enabled_var.get(),
+                "transmission_mode": app.transmission_mode_var.get(),
+                "transmission_time": app.transmission_time_var.get(),
+                "transmission_email": app.transmission_email_var.get(),
                 "include_captured_image": opts["include_captured_image"].get(),
                 "include_segmented_image": opts["include_segmented_image"].get(),
                 "include_granulometric_curve": opts["include_granulometric_curve"].get(),

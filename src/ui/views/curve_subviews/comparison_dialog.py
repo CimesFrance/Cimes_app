@@ -174,7 +174,7 @@ class ComparisonDialog:
         comp_ax.set_yticks(np.arange(0, 101, 10))
         comp_ax.set_xlim([0, 85])
         comp_ax.set_ylim([0, 105])
-        comp_ax.grid(True, alpha=0.3)
+        comp_ax.grid(True)
         comp_ax.legend(loc="upper left", fontsize=10)
         canvas_comp = FigureCanvasTkAgg(comp_fig, master=comp_win)
         canvas_comp.draw()

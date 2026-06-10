@@ -209,7 +209,7 @@ class CimesApp(CameraController, tk.Tk):
         """ Démarre les mises à jour automatiques. """
         self.after(1000, self._update_clock)
         self.url_var.trace_add("write", lambda *a: self._update_active_params_display())
-        self.capture_time_val_var.trace_add("write", lambda *a: self._update_active_params_display())
+        self.capture_time_val_var.trace_add("write", lambda *a: self._update_save_delay_display())
         self.capture_time_unit_var.trace_add("write", lambda *a: self._update_save_delay_display())
         self.results_path_var.trace_add("write", lambda *a: self._update_active_params_display())
         self.start_time_var.trace_add("write", lambda *a: self._update_active_params_display())
@@ -220,8 +220,70 @@ class CimesApp(CameraController, tk.Tk):
 
     def _update_clock(self):
         """ Met à jour l'horloge. """
-        self.datetime_var.set(datetime.now().strftime("%Y/%m/%d %H:%M:%S"))
+        from datetime import datetime
+        current_time = datetime.now()
+        self.datetime_var.set(current_time.strftime("%Y/%m/%d %H:%M:%S"))
+        
+        # Vérification transmission quotidienne
+        if hasattr(self, 'transmission_enabled_var') and self.transmission_enabled_var.get():
+            if self.transmission_mode_var.get() == "daily":
+                target_time = self.transmission_time_var.get()
+                current_hm = current_time.strftime("%H:%M")
+                
+                # S'assurer qu'on ne l'envoie qu'une seule fois par minute (quand les secondes sont à 0)
+                if current_hm == target_time and current_time.second == 0:
+                    self.after(100, self._trigger_daily_transmission)
+                    
         self.after(1000, self._update_clock)
+
+    def _trigger_daily_transmission(self):
+        """ Génère et envoie le rapport quotidien (toutes les captures du jour en ZIP) """
+        print("[TRANSMISSION] Déclenchement de la transmission quotidienne...")
+        from src.utils.report_generator import generate_pdf_report
+        from src.utils.email_sender import envoyer_email_rapport
+        import zipfile
+        import os
+        from datetime import datetime
+        
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        today_dir = os.path.join(self.results_path_var.get(), today_str)
+        
+        if not os.path.exists(today_dir):
+            print("[TRANSMISSION] Aucune donnée pour aujourd'hui.")
+            return
+            
+        pdfs_to_send = []
+        # Parcourir les exécutions et les captures de la journée
+        for exec_dir in os.listdir(today_dir):
+            exec_path = os.path.join(today_dir, exec_dir)
+            if os.path.isdir(exec_path) and exec_dir.startswith("execution_"):
+                for cap_dir in os.listdir(exec_path):
+                    cap_path = os.path.join(exec_path, cap_dir)
+                    if os.path.isdir(cap_path) and cap_dir.startswith("capture_"):
+                        # Générer le PDF pour cette capture
+                        pdf_path = generate_pdf_report(cap_path, self)
+                        if pdf_path and os.path.exists(pdf_path):
+                            pdfs_to_send.append(pdf_path)
+                            
+        if not pdfs_to_send:
+            print("[TRANSMISSION] Aucun rapport à envoyer.")
+            return
+            
+        # Créer une archive ZIP
+        zip_path = os.path.join(today_dir, f"Rapports_CIMES_{today_str}.zip")
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for i, pdf in enumerate(pdfs_to_send):
+                zipf.write(pdf, arcname=f"Rapport_Capture_{i+1}.pdf")
+                
+        # Envoyer l'email
+        destinataire = self.transmission_email_var.get()
+        if destinataire:
+            envoyer_email_rapport(
+                destinataire,
+                zip_path,
+                subject=f"Rapports CIMES de la journée - {today_str}",
+                body=f"Bonjour,\n\nVeuillez trouver ci-joint les {len(pdfs_to_send)} rapports générés aujourd'hui.\n\nCordialement,\nL'application CIMES"
+            )
 
     def _update_active_params_display(self):
         """ Met à jour l'affichage des paramètres actifs. """
@@ -241,6 +303,7 @@ class CimesApp(CameraController, tk.Tk):
 
     def _on_capture_mode_changed(self):
         """ Met à jour l'affichage des paramètres actifs et les contrôles de capture. """
+        self._update_save_delay_display()
         self._update_active_params_display()
         if hasattr(self, "param_view"):
             self.param_view._toggle_capture_controls()

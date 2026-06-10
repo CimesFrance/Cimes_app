@@ -144,7 +144,6 @@ class ChartRenderer:
                 which="major",
                 linestyle="--",
                 linewidth=0.7,
-                alpha=0.3,
                 color="#9ca3af",
             )
             ax.grid(
@@ -152,7 +151,6 @@ class ChartRenderer:
                 which="minor",
                 linestyle=":",
                 linewidth=0.5,
-                alpha=0.2,
                 color="#d1d5db",
             )
             ax.minorticks_on()

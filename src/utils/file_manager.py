@@ -132,6 +132,29 @@ def save_capture_data(capture_data, results_path, app):
                 }
             json.dump(json_data, f, indent=4, ensure_ascii=False)
         print(f"[SAUVEGARDE] Capture #{capture_data['id']} sauvegardée dans {capture_dir}")
+
+        # Transmission : Si le mode est "À chaque capture" ("capture") et que la transmission est activée
+        if app.transmission_enabled_var.get() and app.transmission_mode_var.get() == "capture":
+            destinataire = app.transmission_email_var.get().strip()
+            if destinataire:
+                print("[TRANSMISSION] Génération du PDF en cours...")
+                from src.utils.report_generator import generate_pdf_report
+                from src.utils.email_sender import envoyer_email_rapport
+                
+                pdf_path = generate_pdf_report(capture_dir, app)
+                if pdf_path and os.path.exists(pdf_path):
+                    envoyer_email_rapport(
+                        destinataire, 
+                        pdf_path, 
+                        subject=f"Rapport CIMES - Capture #{capture_data['id']}",
+                        body=f"Veuillez trouver ci-joint le rapport généré le {json_data['timestamp']}."
+                    )
+            else:
+                messagebox.showwarning(
+                    "Transmission ignorée", 
+                    "La transmission automatique est activée, mais aucune adresse e-mail n'est renseignée dans les paramètres."
+                )
+
     except Exception as e:  # pylint: disable=broad-exception-caught
         messagebox.showerror(
             "Erreur Sauvegarde", 

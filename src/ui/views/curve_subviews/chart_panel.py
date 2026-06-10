@@ -38,7 +38,7 @@ class ChartPanel:
         )
         self.ax.set_xlabel("Taille du tamis (mm)", fontsize=12)
         self.ax.set_ylabel("% passant", fontsize=12)
-        self.ax.grid(True, alpha=0.3)
+        self.ax.grid(True)
         self.ax.set_xticks([0, 22.4, 31.5, 40, 50, 63, 80])
         self.ax.set_xticklabels(
             ["0", "22.4", "31.5", "40", "50", "63", "80"], fontsize=11
@@ -113,7 +113,7 @@ class ChartPanel:
         )
         self.ax.set_xlim([0, 85])
         self.ax.set_ylim([0, 105])
-        self.ax.grid(True, alpha=0.3)
+        self.ax.grid(True)
         self.ax.legend(loc="upper left", fontsize=10)
 
         for i, (x, y) in enumerate(zip(tamis, cumul)):
@@ -161,7 +161,7 @@ class ChartPanel:
                 fontsize=14,
                 fontweight="bold",
             )
-            self.hist_ax.grid(True, alpha=0.3)
+            self.hist_ax.grid(True)
             self.hist_canvas.draw()
             return
 
@@ -213,7 +213,7 @@ class ChartPanel:
                 )
                 self.hist_ax.set_xticks(range(len(bin_labels)))
                 self.hist_ax.set_xticklabels(bin_labels, rotation=45, fontsize=10)
-                self.hist_ax.grid(True, alpha=0.3, linestyle="--", axis="y")
+                self.hist_ax.grid(True, linestyle="--", axis="y")
 
                 mean_size = np.mean(minor_axes_mm)
                 median_size = np.median(minor_axes_mm)
@@ -250,7 +250,7 @@ class ChartPanel:
                     fontsize=12,
                     color="red",
                 )
-                self.hist_ax.grid(True, alpha=0.3)
+                self.hist_ax.grid(True)
         else:
             self.hist_ax.text(
                 0.5,
@@ -269,6 +269,6 @@ class ChartPanel:
                 fontsize=14,
                 fontweight="bold",
             )
-            self.hist_ax.grid(True, alpha=0.3)
+            self.hist_ax.grid(True)
 
         self.hist_canvas.draw()
