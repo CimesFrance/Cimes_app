@@ -175,10 +175,13 @@ def create_transmission_settings(view):
         style="ParamSave.TButton",
         command=lambda: _save_report_configuration(view),
     ).pack(pady=(0, 10))
-    _toggle_transmission_settings(view)
+    view.app.transmission_enabled_var.trace_add(
+        "write", lambda *a: _toggle_transmission_settings(view)
+    )
     view.app.transmission_mode_var.trace_add(
         "write", lambda *a: _update_transmission_mode_display(view)
     )
+    _toggle_transmission_settings(view)
     _update_transmission_mode_display(view)
     return frame
 
