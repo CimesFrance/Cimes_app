@@ -8,7 +8,7 @@ import subprocess
 import threading
 import sys
 
-from src.ui.widgets.ui_utils import COLOR_CARD_BG, COLOR_ACCENT, create_setting_header
+from src.ui.widgets.ui_utils import COLOR_CARD_BG, COLOR_ACCENT, create_setting_header, add_tooltip
 from src.utils.file_manager import (
     load_calibration_files,
     load_conversion_param,
@@ -85,20 +85,37 @@ def create_calibration_settings(view):
     ).pack(fill="x", pady=(0, 10))
     corr_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     corr_frame.pack(fill="x", pady=(0, 10))
+    undistort_row = tk.Frame(corr_frame, bg=COLOR_CARD_BG)
+    undistort_row.pack(fill="x", pady=(5, 0))
     view.undistort_check = ttk.Checkbutton(
-        corr_frame,
+        undistort_row,
         text="Utiliser la correction de distorsion",
         variable=view.app.use_undistortion_var,
         command=lambda: _update_undistort_status(view),
     )
-    view.undistort_check.pack(anchor="w", pady=(5, 0))
+    view.undistort_check.pack(side="left")
+    add_tooltip(
+        undistort_row,
+        "Corrige la déformation optique de la lentille (effet 'fish-eye').\n\n"
+        "Résultat : les lignes droites dans la réalité apparaissent droites \u00e0 l'écran,\n"
+        "ce qui améliore la précision des mesures de taille des grains.",
+    ).pack(side="left")
+    homography_row = tk.Frame(corr_frame, bg=COLOR_CARD_BG)
+    homography_row.pack(fill="x", pady=(5, 0))
     view.homography_check = ttk.Checkbutton(
-        corr_frame,
+        homography_row,
         text="Utiliser la correction d'homographie",
         variable=view.app.use_homography_var,
         command=lambda: _update_homography_status(view),
     )
-    view.homography_check.pack(anchor="w", pady=(5, 0))
+    view.homography_check.pack(side="left")
+    add_tooltip(
+        homography_row,
+        "Corrige la perspective (vue de biais) en redressant l'image\n"
+        "comme si la caméra était à la verticale exacte du tapis.\n\n"
+        "Recommandé si la caméra est inclinée ou décalée par rapport\n"
+        "au plan de mesure.",
+    ).pack(side="left")
     tk.Label(
         corr_frame,
         text="Ces corrections sont appliquées automatiquement lors de l'analyse.",
@@ -118,13 +135,19 @@ def create_calibration_settings(view):
     ).pack(fill="x", pady=(0, 10))
     scale_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     scale_frame.pack(fill="x", pady=(0, 10))
+    scale_label_row = tk.Frame(scale_frame, bg=COLOR_CARD_BG)
+    scale_label_row.pack(side="left")
     tk.Label(
-        scale_frame,
+        scale_label_row,
         text="Échelle (mm/px):",
         bg=COLOR_CARD_BG,
         font=("Segoe UI", 10),
-        width=15,
         anchor="w",
+    ).pack(side="left")
+    add_tooltip(
+        scale_label_row,
+        "Facteur de conversion entre pixels et millimètres réels.\n\n"
+        "Définit combien de millimètres correspond à 1 pixel sur l'image.\n\n",
     ).pack(side="left")
     view.calibration_scale_entry = ttk.Entry(
         scale_frame,

@@ -29,7 +29,113 @@ if not os.path.exists(LOGO_PATH):
     LOGO_PATH = r"C:\Users\Arezki.boukhalfa\Desktop\logo.png"
 
 
+class Tooltip:
+    """
+    Infobulle (tooltip) professionnelle avec délai d'apparition et design moderne.
+    Usage : Tooltip(widget, "Texte de l'infobulle")
+    """
+    _BG = "#1e293b"
+    _FG = "#f1f5f9"
+    _FG_HINT = "#94a3b8"  # couleur plus discrète pour le suffixe
+    _FONT = ("Segoe UI", 9)
+    _DELAY_MS = 600  # délai avant apparition (ms)
+    _WRAPLENGTH = 280
+    _SUFFIX = "\n\nℹ️  Pour plus d'infos, consultez le guide\n    dans l'onglet Aide."
+
+    def __init__(self, widget, text: str):
+        self.widget = widget
+        self.text = text.rstrip()
+        self._tip_window = None
+        self._after_id = None
+        widget.bind("<Enter>", self._schedule_show, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+        widget.bind("<ButtonPress>", self._hide, add="+")
+
+    def _schedule_show(self, event=None):  # pylint: disable=unused-argument
+        self._cancel()
+        self._after_id = self.widget.after(self._DELAY_MS, self._show)
+
+    def _cancel(self):
+        if self._after_id:
+            self.widget.after_cancel(self._after_id)
+            self._after_id = None
+
+    def _show(self):
+        if self._tip_window:
+            return
+        # Position : juste sous le widget
+        try:
+            x = self.widget.winfo_rootx() + 5
+            y = self.widget.winfo_rooty() + self.widget.winfo_height() + 4
+        except Exception:  # pylint: disable=broad-exception-caught
+            return
+        self._tip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)  # Sans bordure système
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.attributes("-topmost", True)
+        # Conteneur principal avec bordure subtile
+        outer = tk.Frame(tw, bg="#334155", padx=1, pady=1)
+        outer.pack()
+        inner = tk.Frame(outer, bg=self._BG, padx=10, pady=7)
+        inner.pack()
+        # Corps principal
+        tk.Label(
+            inner,
+            text=self.text,
+            bg=self._BG,
+            fg=self._FG,
+            font=self._FONT,
+            wraplength=self._WRAPLENGTH,
+            justify="left",
+        ).pack(anchor="w")
+        # Séparateur fin
+        tk.Frame(inner, bg="#334155", height=1).pack(fill="x", pady=(6, 4))
+        # Ligne de renvoi vers l'onglet Aide
+        tk.Label(
+            inner,
+            text=self._SUFFIX.strip(),
+            bg=self._BG,
+            fg=self._FG_HINT,
+            font=("Segoe UI", 8, "italic"),
+            wraplength=self._WRAPLENGTH,
+            justify="left",
+        ).pack(anchor="w")
+
+    def _hide(self, event=None):  # pylint: disable=unused-argument
+        self._cancel()
+        if self._tip_window:
+            self._tip_window.destroy()
+            self._tip_window = None
+
+
+def add_tooltip(parent, text: str, bg=None) -> tk.Label:
+    """
+    Crée et retourne un label icône ⓘ avec une infobulle attachée.
+    À placer à côté d'un label de paramètre.
+
+    Args:
+        parent: widget parent du label icône.
+        text: texte de l'infobulle.
+        bg: couleur de fond du label icône (hérite du parent si None).
+
+    Returns:
+        Le label icône créé.
+    """
+    bg = bg or COLOR_CARD_BG
+    icon = tk.Label(
+        parent,
+        text=" ⓘ",
+        bg=bg,
+        fg="#9ca3af",
+        font=("Segoe UI", 10),
+        cursor="question_arrow",
+    )
+    Tooltip(icon, text)
+    return icon
+
+
 def load_icon(name, size=(24, 24)):
+
     """Charge et redimensionne une icône depuis le dossier assets."""
     icon_path = os.path.join(proj_root, "assets", name)
     try:

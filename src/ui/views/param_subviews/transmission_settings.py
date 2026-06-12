@@ -5,7 +5,7 @@ from tkinter import ttk, messagebox
 import json
 import os
 
-from src.ui.widgets.ui_utils import COLOR_CARD_BG, create_setting_header
+from src.ui.widgets.ui_utils import COLOR_CARD_BG, create_setting_header, add_tooltip
 
 
 def create_transmission_settings(view):
@@ -25,14 +25,23 @@ def create_transmission_settings(view):
     view.transmission_params_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     view.transmission_params_frame.pack(fill="x", pady=(0, 10))
     # Mode
+    mode_header = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
+    mode_header.pack(fill="x", pady=(0, 10))
     tk.Label(
-        view.transmission_params_frame,
+        mode_header,
         text="Mode de transmission",
         bg=COLOR_CARD_BG,
         fg="#111827",
         anchor="w",
         font=("Segoe UI", 10, "bold"),
-    ).pack(fill="x", pady=(0, 10))
+    ).pack(side="left")
+    add_tooltip(
+        mode_header,
+        "Définit quand les rapports sont envoyés automatiquement par email.\n\n"
+        "• 'À chaque capture' : un email est envoyé après chaque analyse.\n"
+        "• 'À la fin de journée' : toutes les captures du jour sont compressées\n"
+        "  en une archive ZIP et envoyées en un seul email à l'heure choisie.",
+    ).pack(side="left")
     mode_frame = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
     mode_frame.pack(fill="x", pady=(0, 15))
     ttk.Radiobutton(
@@ -52,13 +61,20 @@ def create_transmission_settings(view):
         view.transmission_params_frame, bg=COLOR_CARD_BG
     )
     view.time_transmission_frame.pack(fill="x", pady=(0, 15))
+    time_label_row = tk.Frame(view.time_transmission_frame, bg=COLOR_CARD_BG)
+    time_label_row.pack(fill="x", pady=(0, 5))
     tk.Label(
-        view.time_transmission_frame,
+        time_label_row,
         text="Heure d'envoi:",
         bg=COLOR_CARD_BG,
         anchor="w",
         font=("Segoe UI", 10, "bold"),
-    ).pack(fill="x", pady=(0, 5))
+    ).pack(side="left")
+    add_tooltip(
+        time_label_row,
+        "Heure à laquelle le rapport journalier est envoyé automatiquement.\n\n"
+        "Format : HH:MM en heure locale (ex: 18:00 pour 18h)\n\n",
+    ).pack(side="left")
     time_frame = tk.Frame(view.time_transmission_frame, bg=COLOR_CARD_BG)
     time_frame.pack(fill="x", pady=(0, 10))
     ttk.Entry(
@@ -90,11 +106,19 @@ def create_transmission_settings(view):
         font=("Segoe UI", 10),
     ).pack(fill="x", pady=(0, 20))
     # Courbe corrigée DNA
+    dna_row = tk.Frame(view.transmission_params_frame, bg=COLOR_CARD_BG)
+    dna_row.pack(fill="x", pady=(0, 10))
     ttk.Checkbutton(
-        view.transmission_params_frame,
+        dna_row,
         text="Inclure la courbe corrigée DNA dans les rapports",
         variable=view.app.show_corrected_curve_var,
-    ).pack(anchor="w", pady=(0, 10))
+    ).pack(side="left")
+    add_tooltip(
+        dna_row,
+        "Si coché, les rapports PDF incluront deux courbes granulométriques :\n"
+        "  • La courbe brute (mesures directes de la caméra)\n"
+        "  • La courbe corrigée (après application de la correction DNA)\n\n",
+    ).pack(side="left")
     ttk.Separator(view.transmission_params_frame, orient="horizontal").pack(
         fill="x", pady=(10, 20)
     )

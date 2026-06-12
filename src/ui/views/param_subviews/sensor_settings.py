@@ -8,6 +8,7 @@ import os
 from src.ui.widgets.ui_utils import (
     COLOR_CARD_BG,
     create_setting_header,
+    add_tooltip,
 )
 
 
@@ -21,14 +22,27 @@ def create_sensor_settings(view):
     inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
     # Adresse IP RTSP
+    rtsp_header = tk.Frame(inner, bg=COLOR_CARD_BG)
+    rtsp_header.pack(fill="x", pady=(0, 5))
     tk.Label(
-        inner,
+        rtsp_header,
         text="Adresse IP du Capteur RTSP",
         bg=COLOR_CARD_BG,
         fg="#111827",
         anchor="w",
         font=("Segoe UI", 10, "bold"),
-    ).pack(fill="x", pady=(0, 5))
+    ).pack(side="left")
+    add_tooltip(
+        rtsp_header,
+        "RTSP (Real Time Streaming Protocol) est le protocole utilisé pour "
+        "récupérer le flux vidéo de la caméra.\n\n"
+        "Format attendu :\n"
+        "  rtsp://<user>:<password>@<ip>:<port>/<chemin>\n\n"
+        "• <user> / <password> : identifiants de la caméra\n"
+        "• <ip> : adresse IP de la caméra sur le réseau local\n"
+        "• <port> : généralement 554 (port RTSP standard)\n"
+        "• <chemin> : dépend du fabricant (ex: stream, ch0, live)",
+    ).pack(side="left")
     ttk.Entry(
         inner, textvariable=view.app.url_var, width=50, font=("Segoe UI", 10)
     ).pack(fill="x")
@@ -91,14 +105,22 @@ def create_sensor_settings(view):
     # Paramètres automatiques
     view.auto_params_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     view.auto_params_frame.pack(fill="x", pady=(0, 20))
+    interval_header = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
+    interval_header.pack(fill="x", pady=(0, 5))
     tk.Label(
-        view.auto_params_frame,
+        interval_header,
         text="Intervalle entre captures :",
         bg=COLOR_CARD_BG,
         fg="#4b5563",
         anchor="w",
         font=("Segoe UI", 9),
-    ).pack(fill="x", pady=(0, 5))
+    ).pack(side="left")
+    add_tooltip(
+        interval_header,
+        "Durée d'attente entre deux captures consécutives en mode automatique.\n\n"
+        "Unités disponibles :\n"
+        "Un intervalle trop court peut surcharger le disque et le CPU.",
+    ).pack(side="left")
     view.capture_interval_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
     view.capture_interval_frame.pack(fill="x", pady=(0, 15))
     ttk.Entry(
@@ -116,14 +138,23 @@ def create_sensor_settings(view):
         font=("Segoe UI", 10),
     ).pack(side="left", padx=(10, 0))
     # Programmation des heures
+    hours_header = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
+    hours_header.pack(fill="x", pady=(5, 5))
     tk.Label(
-        view.auto_params_frame,
+        hours_header,
         text="Programmation des heures de fonctionnement :",
         bg=COLOR_CARD_BG,
         fg="#4b5563",
         anchor="w",
         font=("Segoe UI", 9),
-    ).pack(fill="x", pady=(5, 5))
+    ).pack(side="left")
+    add_tooltip(
+        hours_header,
+        "Plage horaire pendant laquelle les captures automatiques sont actives.\n\n"
+        "En dehors de cette plage, aucune capture n'est déclenchée, "
+        "même si le logiciel est en cours d'exécution.\n"
+        "Laissez vide pour capturer 24h/24.",
+    ).pack(side="left")
     view.time_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
     view.time_frame.pack(fill="x", pady=(0, 15))
     tk.Label(
@@ -153,14 +184,21 @@ def create_sensor_settings(view):
         font=("Segoe UI", 10),
     ).pack(side="left")
     # Jours de fonctionnement
+    days_header = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
+    days_header.pack(fill="x", pady=(5, 5))
     tk.Label(
-        view.auto_params_frame,
+        days_header,
         text="Jours de fonctionnement :",
         bg=COLOR_CARD_BG,
         fg="#4b5563",
         anchor="w",
         font=("Segoe UI", 9),
-    ).pack(fill="x", pady=(5, 5))
+    ).pack(side="left")
+    add_tooltip(
+        days_header,
+        "Sélectionnez les jours de la semaine où les captures automatiques "
+        "sont autorisées.\n\n",
+    ).pack(side="left")
     view.days_frame = tk.Frame(view.auto_params_frame, bg=COLOR_CARD_BG)
     view.days_frame.pack(fill="x", pady=(0, 20))
     for jour in [

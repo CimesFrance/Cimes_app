@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from src.ui.widgets.ui_utils import COLOR_CARD_BG, COLOR_ACCENT, create_setting_header
+from src.ui.widgets.ui_utils import COLOR_CARD_BG, COLOR_ACCENT, create_setting_header, add_tooltip
 
 
 def create_analysis_settings(view):
@@ -13,14 +13,23 @@ def create_analysis_settings(view):
     inner = tk.Frame(frame, bg=COLOR_CARD_BG, padx=40, pady=20)
     inner.pack(fill="both", expand=True)
     # Correction DNA
+    dna_header = tk.Frame(inner, bg=COLOR_CARD_BG)
+    dna_header.pack(fill="x", pady=(0, 10))
     tk.Label(
-        inner,
+        dna_header,
         text="Correction DNA de la courbe granulométrique",
         bg=COLOR_CARD_BG,
         fg="#111827",
         anchor="w",
         font=("Segoe UI", 11, "bold"),
-    ).pack(fill="x", pady=(0, 10))
+    ).pack(side="left")
+    add_tooltip(
+        dna_header,
+        "La correction DNA (Distrib. Normalisée Ajustée) compense les biais systématiques\n"
+        "introduits par le système optique lors de la mesure des grains.\n\n"
+        "Ces paramètres sont calculés automatiquement par le module\n"
+        "'Modifier correction'.",
+    ).pack(side="left")
     corr_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     corr_frame.pack(fill="x", pady=(5, 20))
     ttk.Checkbutton(
@@ -119,13 +128,21 @@ def create_analysis_settings(view):
     ).pack(fill="x", pady=(15, 0))
     seg_param_frame = tk.Frame(inner, bg=COLOR_CARD_BG)
     seg_param_frame.pack(fill="x", pady=(5, 10))
+    diam_label_row = tk.Frame(seg_param_frame, bg=COLOR_CARD_BG)
+    diam_label_row.pack(side="left")
     tk.Label(
-        seg_param_frame,
+        diam_label_row,
         text="Diamètre estimé (px):",
         bg=COLOR_CARD_BG,
         font=("Segoe UI", 10),
-        width=20,
         anchor="w",
+    ).pack(side="left")
+    add_tooltip(
+        diam_label_row,
+        "Diamètre moyen des objets à segmenter, exprimé en pixels.\n\n"
+        "Valeur recommandée : 80 px pour une caméra standard.\n"
+        "Adaptez selon la résolution et la taille réelle des grains observés.\n"
+        "Vous pouvez également laisser 0 pour une détection automatique.",
     ).pack(side="left")
     view.diameter_var = tk.StringVar(value="80")
     ttk.Entry(
