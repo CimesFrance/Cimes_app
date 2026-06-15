@@ -4,8 +4,11 @@ Construit la nav latérale et délègue chaque section à son sous-module.
 """
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox, filedialog
+import os
+import shutil
 
+from src.utils.file_manager import get_project_root
 from src.ui.widgets.ui_utils import COLOR_FRAME_BG, COLOR_CARD_BG, load_icon
 from src.ui.views.param_subviews.sensor_settings import create_sensor_settings
 from src.ui.views.param_subviews.calibration_settings import create_calibration_settings
@@ -83,6 +86,23 @@ class ParamView:
             )
             btn.pack(fill="x", padx=10, pady=2)
             self.param_nav_buttons[key] = btn
+
+        # Spacer pour pousser le bouton guide vers le bas
+        tk.Frame(nav_frame, bg=COLOR_CARD_BG).pack(fill="y", expand=True)
+
+        # Bouton Guide d'utilisation
+        guide_icon = load_icon("download.png", size=(20, 20))
+        self.nav_icons["guide"] = guide_icon
+        guide_btn = ttk.Button(
+            nav_frame,
+            text="  Guide d'utilisation",
+            image=guide_icon,
+            compound="left",
+            style="ParamNav.TButton",
+            command=self._download_guide,
+        )
+        guide_btn.pack(fill="x", side="bottom", padx=10, pady=20)
+
         # Conteneur du contenu
         self.param_content_frame = tk.Frame(param_area, bg=COLOR_FRAME_BG)
         self.param_content_frame.grid(
@@ -143,3 +163,28 @@ class ParamView:
                 widget.configure(state="disabled")
             for widget in self.days_frame.winfo_children():
                 widget.configure(state="disabled")
+
+    def _download_guide(self):
+        """Permet de télécharger (sauvegarder) le guide d'utilisation PDF."""
+        guide_path = os.path.join(get_project_root(), "assets", "Guide_Utilisation.pdf")
+        
+        if not os.path.exists(guide_path):
+            messagebox.showwarning(
+                "Fichier introuvable", 
+                "Le guide d'utilisation (Guide_Utilisation.pdf) est introuvable dans le dossier assets."
+            )
+            return
+            
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            initialfile="Guide_Utilisation.pdf",
+            title="Enregistrer le guide d'utilisation",
+            filetypes=[("Fichiers PDF", "*.pdf")]
+        )
+        
+        if save_path:
+            try:
+                shutil.copy2(guide_path, save_path)
+                messagebox.showinfo("Succès", "Le guide a été téléchargé avec succès.")
+            except Exception as e:
+                messagebox.showerror("Erreur", f"Erreur lors du téléchargement :\n{str(e)}")
